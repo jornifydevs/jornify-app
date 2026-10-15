@@ -42,12 +42,14 @@ describe("CompleteWorkerRegistrationUseCase", () => {
       findWorkersByCompanyId: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     };
     invitationCodeRepo = {
       findByCode: vi.fn(),
       findByCompanyId: vi.fn(),
       create: vi.fn(),
       consume: vi.fn(),
+      delete: vi.fn(),
     };
     useCase = new CompleteWorkerRegistrationUseCase(
       userRepo,

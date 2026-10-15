@@ -49,6 +49,8 @@ describe("StartBreakUseCase", () => {
       findCompletedByWorkdayIds: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      findOpenByWorkdayIds: vi.fn(),
+      deleteAllByWorkdayIds: vi.fn(),
     };
     workdayRepo = {
       findByWorkerAndDate: vi.fn(),
@@ -59,6 +61,11 @@ describe("StartBreakUseCase", () => {
       countActiveByDate: vi.fn(),
       findByDateRange: vi.fn(),
       findByCenterAndDateRange: vi.fn(),
+      findIdsByWorkerId: vi.fn(),
+      deleteAllByWorkerId: vi.fn(),
+      findById: vi.fn(),
+      update: vi.fn(),
+      updateWorkerId: vi.fn(),
     };
     centerRepo = {
       findById: vi.fn(),

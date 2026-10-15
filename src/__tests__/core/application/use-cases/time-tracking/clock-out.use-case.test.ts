@@ -14,6 +14,8 @@ describe("ClockOutUseCase", () => {
       findCompletedByWorkdayIds: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      findOpenByWorkdayIds: vi.fn(),
+      deleteAllByWorkdayIds: vi.fn(),
     };
     useCase = new ClockOutUseCase(timeRecordRepo);
   });

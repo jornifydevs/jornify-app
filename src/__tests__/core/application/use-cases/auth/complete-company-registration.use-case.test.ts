@@ -68,6 +68,7 @@ describe("CompleteCompanyRegistrationUseCase", () => {
       findWorkersByCompanyId: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     };
     centerRepo = {
       findById: vi.fn(),

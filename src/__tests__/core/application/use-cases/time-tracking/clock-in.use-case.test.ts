@@ -115,6 +115,8 @@ describe("ClockInUseCase", () => {
       findByCenterIds: vi.fn(),
       countAll: vi.fn(),
       create: vi.fn(),
+      updateCenter: vi.fn(),
+      delete: vi.fn(),
     };
     centerRepo = {
       findById: vi.fn(),

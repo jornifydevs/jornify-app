@@ -36,6 +36,7 @@ describe("GetWorkerDashboardUseCase", () => {
       findWorkersByCompanyId: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     };
     workerRepo = {
       findById: vi.fn(),
@@ -45,6 +46,8 @@ describe("GetWorkerDashboardUseCase", () => {
       findByCenterIds: vi.fn(),
       countAll: vi.fn(),
       create: vi.fn(),
+      updateCenter: vi.fn(),
+      delete: vi.fn(),
     };
     useCase = new GetWorkerDashboardUseCase(userRepo, workerRepo);
   });

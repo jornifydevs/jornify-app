@@ -14,6 +14,8 @@ describe("EndBreakUseCase", () => {
       findCompletedByWorkdayIds: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      findOpenByWorkdayIds: vi.fn(),
+      deleteAllByWorkdayIds: vi.fn(),
     };
     useCase = new EndBreakUseCase(timeRecordRepo);
   });

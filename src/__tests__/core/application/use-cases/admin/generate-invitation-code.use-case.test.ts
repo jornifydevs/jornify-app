@@ -23,6 +23,7 @@ describe("GenerateInvitationCodeUseCase", () => {
       findByCompanyId: vi.fn(),
       create: vi.fn(),
       consume: vi.fn(),
+      delete: vi.fn(),
     };
     useCase = new GenerateInvitationCodeUseCase(repo);
   });

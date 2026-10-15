@@ -50,6 +50,8 @@ describe("GetAllWorkersUseCase", () => {
       findByCenterIds: vi.fn(),
       countAll: vi.fn(),
       create: vi.fn(),
+      updateCenter: vi.fn(),
+      delete: vi.fn(),
     };
     userRepo = {
       findByEmail: vi.fn(),
@@ -58,6 +60,7 @@ describe("GetAllWorkersUseCase", () => {
       findWorkersByCompanyId: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     };
     centerRepo = {
       findById: vi.fn(),

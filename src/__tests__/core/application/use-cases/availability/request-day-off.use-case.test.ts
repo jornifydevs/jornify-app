@@ -61,6 +61,8 @@ describe("RequestDayOffUseCase", () => {
       findByCenterIds: vi.fn(),
       countAll: vi.fn(),
       create: vi.fn(),
+      updateCenter: vi.fn(),
+      delete: vi.fn(),
     };
     useCase = new RequestDayOffUseCase(workdayRepo, workerRepo);
   });
