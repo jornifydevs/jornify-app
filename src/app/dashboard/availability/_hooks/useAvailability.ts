@@ -1,0 +1,149 @@
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { createClient } from "@/infrastructure/supabase/client";
+import { SupabaseWorkdayRepository } from "@/infrastructure/supabase/repositories/supabase-workday.repository";
+import { SupabaseWorkerRepository } from "@/infrastructure/supabase/repositories/supabase-worker.repository";
+import { GetAvailabilityUseCase } from "@/core/application/use-cases/availability/get-availability.use-case";
+import { RequestDayOffUseCase } from "@/core/application/use-cases/availability/request-day-off.use-case";
+import { DomainError } from "@/core/domain/errors/domain-errors";
+import type { Workday } from "@/core/domain/entities";
+
+interface UseAvailabilityProps {
+  workerId: string;
+  centerId: string;
+}
+
+const DAY_TYPE_LABELS: Record<string, string> = {
+  vacation: "Vacaciones",
+  holiday: "Festivo",
+  sick_leave: "Baja médica",
+};
+
+const DAY_TYPE_COLORS: Record<string, string> = {
+  vacation: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  holiday: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  sick_leave: "bg-red-500/20 text-red-400 border-red-500/30",
+};
+
+const DEFAULT_COLOR = "bg-violet-500/20 text-violet-400 border-violet-500/30";
+
+export function useAvailability({ workerId, centerId }: UseAvailabilityProps) {
+  const [allRecords, setAllRecords] = useState<Workday[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [yearFilter, setYearFilter] = useState<number | undefined>(undefined);
+
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [requestSuccess, setRequestSuccess] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+
+  const supabase = createClient();
+  const workdayRepo = new SupabaseWorkdayRepository(supabase);
+  const workerRepo = new SupabaseWorkerRepository(supabase);
+
+  const loadRecords = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const useCase = new GetAvailabilityUseCase(workdayRepo);
+      const result = await useCase.execute(workerId, undefined, yearFilter);
+      setAllRecords(result);
+    } catch (e) {
+      const message =
+        e instanceof DomainError
+          ? e.message
+          : "Error al cargar la disponibilidad";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workerId, yearFilter]);
+
+  useEffect(() => {
+    loadRecords();
+  }, [loadRecords]);
+
+  const availableTypes = useMemo(() => {
+    const types = [...new Set(allRecords.map((r) => r.typeDay))];
+    return types.sort();
+  }, [allRecords]);
+
+  const filteredRecords = useMemo(() => {
+    if (!typeFilter) return allRecords;
+    return allRecords.filter((r) => r.typeDay === typeFilter);
+  }, [allRecords, typeFilter]);
+
+  const requestDayOff = async (
+    startDay: string,
+    endDay: string,
+    typeDay: string
+  ) => {
+    setRequestError(null);
+    setRequestSuccess(false);
+    setIsRequesting(true);
+
+    try {
+      const useCase = new RequestDayOffUseCase(workdayRepo, workerRepo);
+      await useCase.execute({
+        workerId,
+        centerId,
+        startDay,
+        endDay,
+        typeDay,
+      });
+      setRequestSuccess(true);
+      setShowRequestForm(false);
+      await loadRecords();
+    } catch (e) {
+      const message =
+        e instanceof DomainError
+          ? e.message
+          : "Error al solicitar el día libre";
+      setRequestError(message);
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString + "T00:00:00").toLocaleDateString("es-ES", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getDayTypeLabel = (typeDay: string): string => {
+    return DAY_TYPE_LABELS[typeDay] ?? typeDay.replace(/_/g, " ");
+  };
+
+  const getDayTypeColor = (typeDay: string): string => {
+    return DAY_TYPE_COLORS[typeDay] ?? DEFAULT_COLOR;
+  };
+
+  return {
+    records: filteredRecords,
+    loading,
+    error,
+    typeFilter,
+    setTypeFilter,
+    yearFilter,
+    setYearFilter,
+    availableTypes,
+    showRequestForm,
+    setShowRequestForm,
+    isRequesting,
+    requestError,
+    requestSuccess,
+    setRequestSuccess,
+    requestDayOff,
+    formatDate,
+    getDayTypeLabel,
+    getDayTypeColor,
+  };
+}

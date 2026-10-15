@@ -1,0 +1,7 @@
+
+User-agent: *
+Disallow: /auth/
+Disallow: /dashboard/
+Allow: /
+
+Sitemap: https://jornify.com/sitemap.xml
