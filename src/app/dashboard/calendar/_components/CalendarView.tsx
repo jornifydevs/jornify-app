@@ -1,9 +1,11 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
+import { cn } from "@/lib/utils";
 import { useCalendar } from "../_hooks/useCalendar";
 import type { PublicHoliday } from "@/core/domain/entities";
 import type { CalendarDay } from "@/core/application/dtos/calendar.dto";
@@ -14,6 +16,15 @@ interface CalendarViewProps {
   subdivisionCode?: string;
   centerId?: string;
 }
+
+// Every public holiday uses the brand tone; the dot fill tells the scopes apart.
+const HOLIDAY_DOT = {
+  national: "bg-brand",
+  regional: "bg-brand/50",
+  local: "border-[1.5px] border-brand",
+} as const;
+
+type HolidayScope = keyof typeof HOLIDAY_DOT;
 
 export default function CalendarView({
   countryCode,
@@ -46,53 +57,31 @@ export default function CalendarView({
     return t("regional");
   };
 
-  const getHolidayDotColor = (holiday: PublicHoliday): string => {
-    if (isHolidayLocal(holiday)) return "bg-orange-400";
-    if (isHolidayGlobal(holiday)) return "bg-blue-400";
-    return "bg-emerald-400";
-  };
-
-  const getHolidayTextColor = (holiday: PublicHoliday): string => {
-    if (isHolidayLocal(holiday)) return "text-orange-300";
-    if (isHolidayGlobal(holiday)) return "text-blue-300";
-    return "text-emerald-300";
-  };
-
-  const getHolidayCardStyle = (holiday: PublicHoliday): string => {
-    if (isHolidayLocal(holiday)) return "bg-orange-500/10 border-orange-500/30";
-    if (isHolidayGlobal(holiday)) return "bg-blue-500/10 border-blue-500/30";
-    return "bg-emerald-500/10 border-emerald-500/30";
+  const getHolidayScope = (holiday: PublicHoliday): HolidayScope => {
+    if (isHolidayLocal(holiday)) return "local";
+    if (isHolidayGlobal(holiday)) return "national";
+    return "regional";
   };
 
   const getDayClasses = (day: CalendarDay): string => {
-    const base =
-      "relative flex flex-col items-center justify-start p-1 sm:p-2 min-h-[44px] sm:min-h-[56px] rounded-lg transition-colors cursor-pointer";
+    const isHoliday = day.isCurrentMonth && day.holidays.length > 0;
 
-    if (!day.isCurrentMonth) {
-      return `${base} text-slate-300 dark:text-slate-600`;
-    }
-
-    if (day.isToday) {
-      return `${base} ring-2 ring-slate-900/70 dark:ring-white/70 text-slate-900 dark:text-white font-bold`;
-    }
-
-    if (day.holidays.length > 0) {
-      const hasLocal = day.holidays.some((h) => h.holidayType === "local");
-      const hasNational = day.holidays.some((h) => h.global);
-      if (hasLocal) {
-        return `${base} bg-orange-500/20 text-orange-300`;
-      }
-      if (hasNational) {
-        return `${base} bg-blue-500/20 text-blue-300`;
-      }
-      return `${base} bg-emerald-500/20 text-emerald-300`;
-    }
-
-    if (day.isWeekend) {
-      return `${base} text-slate-500`;
-    }
-
-    return `${base} text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/30`;
+    return cn(
+      "relative flex min-h-11 flex-col items-center justify-start rounded-lg p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-14 sm:p-2",
+      !day.isCurrentMonth
+        ? "text-muted-foreground/50 hover:bg-accent"
+        : isHoliday
+          ? "bg-brand-soft font-semibold text-brand-text hover:bg-brand/20"
+          : day.isWeekend
+            ? "bg-secondary/60 text-muted-foreground hover:bg-accent"
+            : "text-foreground hover:bg-accent",
+      day.isCurrentMonth &&
+        day.isToday &&
+        "font-semibold ring-2 ring-inset ring-foreground",
+      isHoliday &&
+        selectedDay?.date === day.date &&
+        "ring-2 ring-inset ring-brand"
+    );
   };
 
   const handleDayClick = (day: CalendarDay) => {
@@ -114,45 +103,57 @@ export default function CalendarView({
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Sidebar - All Year Holidays */}
           <div className="w-full lg:w-80 lg:flex-shrink-0 order-2 lg:order-1">
-            <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 lg:sticky lg:top-6">
-              <CardContent className="pt-6">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-1">
+            <Card className="lg:sticky lg:top-6">
+              <CardContent className="p-4 sm:p-6">
+                <h2 className="text-base font-semibold tracking-tight">
                   {t("holidays", { year })}
-                </h3>
-                <p className="text-xs text-slate-500 mb-4">
-                  {allYearHolidays.length} festivos
+                </h2>
+                <p className="mb-4 mt-0.5 text-sm text-muted-foreground">
+                  {t("holidayCount", { count: allYearHolidays.length })}
                 </p>
 
                 {loading ? (
-                  <div className="flex items-center justify-center py-8 text-slate-400 gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">{t("loading")}</span>
+                  <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                    <Loader2
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    {t("loading")}
                   </div>
                 ) : allYearHolidays.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-8">
+                  <p className="py-8 text-center text-sm text-muted-foreground">
                     {t("noHolidays")}
                   </p>
                 ) : (
-                  <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto pr-1">
+                  <ul className="-mx-2 max-h-[calc(100vh-200px)] space-y-0.5 overflow-y-auto">
                     {allYearHolidays.map((holiday) => {
                       const isPast =
                         new Date(holiday.date + "T00:00:00") <
                         new Date(new Date().toDateString());
                       return (
-                        <div
+                        <li
                           key={`${holiday.date}-${holiday.localName}`}
-                          className={`flex items-start gap-2.5 p-2.5 rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/30 ${
-                            isPast ? "opacity-50" : ""
-                          }`}
+                          className="flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-accent"
                         >
                           <span
-                            className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${getHolidayDotColor(holiday)}`}
+                            aria-hidden="true"
+                            className={cn(
+                              "mt-1.5 size-2 shrink-0 rounded-full",
+                              HOLIDAY_DOT[getHolidayScope(holiday)]
+                            )}
                           />
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm text-slate-700 dark:text-slate-200 leading-tight">
+                            <p
+                              className={cn(
+                                "text-sm leading-tight",
+                                isPast
+                                  ? "text-muted-foreground"
+                                  : "font-medium text-foreground"
+                              )}
+                            >
                               {holiday.localName}
                             </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="mt-0.5 text-xs text-muted-foreground first-letter:uppercase">
                               {new Date(
                                 holiday.date + "T00:00:00"
                               ).toLocaleDateString(locale, {
@@ -164,31 +165,42 @@ export default function CalendarView({
                               {getHolidayLabel(holiday)}
                             </p>
                           </div>
-                        </div>
+                        </li>
                       );
                     })}
-                  </div>
+                  </ul>
                 )}
 
                 {/* Legend */}
-                <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
-                    <span className="text-xs text-slate-500">
-                      {t("national")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                    <span className="text-xs text-slate-500">
-                      {t("regional")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-400" />
-                    <span className="text-xs text-slate-500">{t("local")}</span>
-                  </div>
-                </div>
+                <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t pt-4 text-xs text-muted-foreground">
+                  <li className="flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "size-2.5 rounded-full",
+                        HOLIDAY_DOT.national
+                      )}
+                    />
+                    {t("national")}
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "size-2.5 rounded-full",
+                        HOLIDAY_DOT.regional
+                      )}
+                    />
+                    {t("regional")}
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      className={cn("size-2.5 rounded-full", HOLIDAY_DOT.local)}
+                    />
+                    {t("local")}
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
@@ -196,65 +208,65 @@ export default function CalendarView({
           {/* Right Side - Calendar */}
           <div className="flex-1 space-y-6 order-1 lg:order-2">
             {/* Month Navigation */}
-            <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-              <CardContent className="pt-6 pb-4">
-                <div className="flex items-center justify-between">
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center justify-between gap-2">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="icon"
+                    className="shrink-0 rounded-full"
                     onClick={goToPreviousMonth}
-                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700"
+                    aria-label={t("previousMonth")}
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft />
                   </Button>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">
+                  <div className="flex min-w-0 flex-col items-center gap-1 sm:flex-row sm:gap-3">
+                    <h2 className="text-center text-lg font-semibold tracking-tight sm:text-xl">
                       {monthLabel}
                     </h2>
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant="outline"
+                      className="rounded-full"
                       onClick={goToToday}
-                      className="text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700"
                     >
                       {t("today")}
                     </Button>
                   </div>
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="icon"
+                    className="shrink-0 rounded-full"
                     onClick={goToNextMonth}
-                    className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-700"
+                    aria-label={t("nextMonth")}
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight />
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
             {/* Error */}
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-                <p className="text-sm text-red-400">{error}</p>
-              </div>
-            )}
+            {error && <Alert variant="error">{error}</Alert>}
 
             {/* Calendar Grid */}
-            <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-              <CardContent className="pt-4 sm:pt-6">
+            <Card>
+              <CardContent className="p-3 sm:p-6">
                 {loading ? (
-                  <div className="flex items-center justify-center p-12 text-slate-400 gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                  <div className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground">
+                    <Loader2
+                      className="size-5 animate-spin"
+                      aria-hidden="true"
+                    />
                     {t("loadingCalendar")}
                   </div>
                 ) : (
                   <>
                     {/* Weekday Headers */}
-                    <div className="grid grid-cols-7 gap-1 mb-2">
+                    <div className="mb-1 grid grid-cols-7 gap-1">
                       {weekdayNames.map((name) => (
                         <div
                           key={name}
-                          className="text-center text-xs font-medium text-slate-500 py-2"
+                          className="py-2 text-center text-xs font-medium text-muted-foreground"
                         >
                           {name}
                         </div>
@@ -266,28 +278,64 @@ export default function CalendarView({
                       {days.map((day) => (
                         <button
                           key={day.date}
+                          type="button"
                           onClick={() => handleDayClick(day)}
+                          aria-current={
+                            day.isCurrentMonth && day.isToday
+                              ? "date"
+                              : undefined
+                          }
+                          aria-pressed={
+                            day.isCurrentMonth && day.holidays.length > 0
+                              ? selectedDay?.date === day.date
+                              : undefined
+                          }
                           className={getDayClasses(day)}
                         >
-                          <span className="text-sm sm:text-base">
+                          <span className="text-sm tabular-nums sm:text-base">
                             {day.dayOfMonth}
                           </span>
                           {day.isCurrentMonth && day.holidays.length > 0 && (
-                            <span className="flex gap-0.5 mt-0.5">
-                              {day.holidays.some((h) => h.global) && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                              )}
-                              {day.holidays.some(
-                                (h) => !h.global && h.holidayType !== "local"
-                              ) && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                              )}
-                              {day.holidays.some(
-                                (h) => h.holidayType === "local"
-                              ) && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-                              )}
-                            </span>
+                            <>
+                              <span className="sr-only">
+                                {day.holidays
+                                  .map((h) => h.localName)
+                                  .join(", ")}
+                              </span>
+                              <span
+                                aria-hidden="true"
+                                className="mt-0.5 flex gap-0.5"
+                              >
+                                {day.holidays.some((h) => h.global) && (
+                                  <span
+                                    className={cn(
+                                      "size-1.5 rounded-full",
+                                      HOLIDAY_DOT.national
+                                    )}
+                                  />
+                                )}
+                                {day.holidays.some(
+                                  (h) => !h.global && h.holidayType !== "local"
+                                ) && (
+                                  <span
+                                    className={cn(
+                                      "size-1.5 rounded-full",
+                                      HOLIDAY_DOT.regional
+                                    )}
+                                  />
+                                )}
+                                {day.holidays.some(
+                                  (h) => h.holidayType === "local"
+                                ) && (
+                                  <span
+                                    className={cn(
+                                      "size-1.5 rounded-full",
+                                      HOLIDAY_DOT.local
+                                    )}
+                                  />
+                                )}
+                              </span>
+                            </>
                           )}
                         </button>
                       ))}
@@ -299,9 +347,9 @@ export default function CalendarView({
 
             {/* Selected Day Detail */}
             {selectedDay && selectedDay.holidays.length > 0 && (
-              <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-                <CardContent className="pt-6">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
+                  <p className="mb-3 text-sm text-muted-foreground first-letter:uppercase">
                     {new Date(
                       selectedDay.date + "T00:00:00"
                     ).toLocaleDateString(locale, {
@@ -311,28 +359,30 @@ export default function CalendarView({
                       year: "numeric",
                     })}
                   </p>
-                  <div className="space-y-2">
+                  <ul className="space-y-2">
                     {selectedDay.holidays.map((holiday) => (
-                      <div
+                      <li
                         key={`${holiday.date}-${holiday.localName}`}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${getHolidayCardStyle(holiday)}`}
+                        className="flex items-center gap-3 rounded-lg bg-brand-soft p-3"
                       >
                         <span
-                          className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${getHolidayDotColor(holiday)}`}
+                          aria-hidden="true"
+                          className={cn(
+                            "size-2.5 shrink-0 rounded-full",
+                            HOLIDAY_DOT[getHolidayScope(holiday)]
+                          )}
                         />
-                        <div>
-                          <p
-                            className={`text-sm font-medium ${getHolidayTextColor(holiday)}`}
-                          >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">
                             {holiday.localName}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-muted-foreground">
                             {getHolidayLabel(holiday)}
                           </p>
                         </div>
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </CardContent>
               </Card>
             )}
