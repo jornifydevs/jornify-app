@@ -42,38 +42,43 @@ export default async function AdminSchedulePage() {
         <PageHeader title={t("pageTitle")} />
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="mx-auto max-w-4xl px-6 py-8">
         {centers.length === 0 ? (
-          <div className="bg-slate-100 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
+          <div className="flex flex-col items-center gap-3 rounded-xl border bg-card px-6 py-12 text-center shadow-sm">
+            <CalendarClock
+              className="size-10 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <p className="max-w-sm text-sm text-muted-foreground">
               {t("noScheduleFeature")}
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <ul className="divide-y overflow-hidden rounded-xl border bg-card shadow-sm">
             {centers.map((center) => (
-              <Link
-                key={center.id}
-                href={`/dashboard/admin/schedule/${center.id}`}
-                className="flex items-center justify-between p-5 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-600/10 rounded-lg group-hover:bg-orange-600/20 transition-colors">
-                    <CalendarClock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-900 dark:text-white">
-                      {center.name}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+              <li key={center.id}>
+                <Link
+                  href={`/dashboard/admin/schedule/${center.id}`}
+                  className="group flex items-center gap-3 px-4 py-4 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"
+                >
+                  <CalendarClock
+                    className="size-5 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{center.name}</p>
+                    <p className="truncate text-sm text-muted-foreground">
                       {center.address}
                     </p>
                   </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" />
-              </Link>
+                  <ChevronRight
+                    className="size-5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+                    aria-hidden="true"
+                  />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </div>

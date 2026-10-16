@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -13,10 +13,22 @@ import {
   Loader2,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { CenterWithWorkerCount } from "@/core/application/dtos/admin-centers.dto";
 import { useTranslations } from "next-intl";
+
+type BadgeTone = NonNullable<ComponentProps<typeof StatusBadge>["tone"]>;
+
+const DAY_TYPE_TONES: Record<string, BadgeTone> = {
+  holiday: "brand",
+  vacation: "pause",
+  sick_leave: "alert",
+};
 
 interface CenterListViewProps {
   centers: CenterWithWorkerCount[];
@@ -141,144 +153,142 @@ export default function CenterListView({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* Create form */}
         {showCreateForm && (
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-green-500/30 p-6">
-            <h2 className="text-sm font-medium text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-green-400" />
+          <section className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+            <h2 className="mb-5 text-lg font-semibold tracking-tight">
               {t("createCenterTitle")}
             </h2>
 
             {error && (
-              <p className="text-xs text-red-400 font-medium mb-4">{error}</p>
+              <Alert variant="error" className="mb-5">
+                {error}
+              </Alert>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 dark:text-slate-400">
-                  {t("nameField")}
-                </label>
-                <input
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="new-center-name">{t("nameField")}</Label>
+                <Input
+                  id="new-center-name"
                   type="text"
                   value={form.name}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, name: e.target.value }))
                   }
-                  placeholder="Centro Norte, Almacén Principal..."
-                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder={t("namePlaceholder")}
+                  aria-required="true"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 dark:text-slate-400">
-                  {t("addressField")}
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="new-center-address">{t("addressField")}</Label>
+                <Input
+                  id="new-center-address"
                   type="text"
                   value={form.address}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, address: e.target.value }))
                   }
-                  placeholder="Calle Mayor 1, Madrid"
-                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder={t("addressPlaceholder")}
+                  aria-required="true"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 dark:text-slate-400">
-                  {t("phone")}
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="new-center-phone">{t("phone")}</Label>
+                <Input
+                  id="new-center-phone"
                   type="tel"
                   value={form.phone}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, phone: e.target.value }))
                   }
-                  placeholder="612 345 678"
-                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder={t("phonePlaceholder")}
+                  className="tabular-nums"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs text-slate-500 dark:text-slate-400">
-                  {t("email")}
-                </label>
-                <input
+              <div className="space-y-2">
+                <Label htmlFor="new-center-email">{t("email")}</Label>
+                <Input
+                  id="new-center-email"
                   type="email"
                   value={form.email}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, email: e.target.value }))
                   }
-                  placeholder="centro@empresa.com"
-                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
 
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-xs text-slate-500 dark:text-slate-400">
-                  {t("location")}
-                </label>
-                <input
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="new-center-location">{t("location")}</Label>
+                <Input
+                  id="new-center-location"
                   type="text"
                   value={form.location}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, location: e.target.value }))
                   }
-                  placeholder="Madrid, Barcelona..."
-                  className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-green-500 dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
+                  placeholder={t("locationPlaceholder")}
                 />
               </div>
             </div>
 
-            <button
+            <Button
               onClick={handleCreate}
               disabled={submitting}
-              className="mt-4 flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+              className="mt-6 w-full sm:w-auto"
             >
-              {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {submitting && <Loader2 className="animate-spin" />}
               {t("createBtn")}
-            </button>
-          </div>
+            </Button>
+          </section>
         )}
 
         {centers.length === 0 && !showCreateForm ? (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-            <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>{t("noCenters")}</p>
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <Building2
+              className="size-10 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <p className="font-medium">{t("noCenters")}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
             {centers.map((center) => (
-              <Card
-                key={center.id}
-                className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-slate-900 dark:text-white text-base flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-green-400" />
-                      {center.name}
-                    </CardTitle>
+              <Card key={center.id}>
+                <CardHeader className="p-4 pb-3 sm:p-6 sm:pb-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="flex min-w-0 items-center gap-2 text-base font-semibold leading-tight tracking-tight">
+                      <Building2
+                        className="size-5 shrink-0 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{center.name}</span>
+                    </h2>
                     <Link
                       href={`/dashboard/admin/centers/${center.id}`}
-                      className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                      className="-my-2 -mr-2 flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       title={t("configureSchedule")}
+                      aria-label={t("configureSchedule")}
                     >
-                      <Settings className="w-4 h-4 text-slate-400" />
+                      <Settings className="size-5" aria-hidden="true" />
                     </Link>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
                   {/* Basic info */}
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <MapPin className="w-4 h-4" />
-                      <span>{center.address}</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <MapPin className="size-4 shrink-0" aria-hidden="true" />
+                      <span className="break-words">{center.address}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <Users className="w-4 h-4" />
-                      <span>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="size-4 shrink-0" aria-hidden="true" />
+                      <span className="tabular-nums">
                         {center.workerCount}{" "}
                         {center.workerCount !== 1
                           ? t("workerCountPlural")
@@ -287,24 +297,21 @@ export default function CenterListView({
                     </div>
                   </div>
 
-                  <div className="space-y-3 pt-2 border-t border-slate-700">
+                  <div className="space-y-3 border-t pt-4">
                     {/* Features (read-only) */}
                     <div>
-                      <p className="text-xs text-slate-500 mb-1.5">
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">
                         {t("featuresTitle")}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {center.enabledFeatures.length > 0 ? (
                           center.enabledFeatures.map((f) => (
-                            <span
-                              key={f}
-                              className="px-2 py-0.5 rounded text-xs bg-green-100 text-green-800 border border-green-300 dark:bg-green-600/20 dark:text-green-300 dark:border-green-500/40"
-                            >
+                            <StatusBadge key={f} size="sm" dot={false}>
                               {FEATURE_LABELS[f] ?? f}
-                            </span>
+                            </StatusBadge>
                           ))
                         ) : (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-muted-foreground">
                             {t("noFeatures")}
                           </span>
                         )}
@@ -313,21 +320,22 @@ export default function CenterListView({
 
                     {/* Day types (read-only) */}
                     <div>
-                      <p className="text-xs text-slate-500 mb-1.5">
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">
                         {t("dayTypesTitle")}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {center.allowedDayTypes.length > 0 ? (
                           center.allowedDayTypes.map((d) => (
-                            <span
+                            <StatusBadge
                               key={d}
-                              className="px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800 border border-blue-300 dark:bg-blue-600/20 dark:text-blue-300 dark:border-blue-500/40"
+                              size="sm"
+                              tone={DAY_TYPE_TONES[d] ?? "neutral"}
                             >
                               {DAY_TYPE_LABELS[d] ?? d}
-                            </span>
+                            </StatusBadge>
                           ))
                         ) : (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-muted-foreground">
                             {t("noDayTypes")}
                           </span>
                         )}

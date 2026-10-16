@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { Search, Loader2, Clock } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -15,9 +18,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { useAttendanceReport } from "../_hooks/useAttendanceReport";
 import { useTranslations, useLocale } from "next-intl";
 import ExportButtons from "@/components/ExportButtons";
+
+type BadgeTone = NonNullable<ComponentProps<typeof StatusBadge>["tone"]>;
+
+const DAY_TYPE_TONES: Record<string, BadgeTone> = {
+  normal: "neutral",
+  holiday: "brand",
+  vacation: "pause",
+  sick_leave: "alert",
+};
 
 interface AttendanceReportViewProps {
   centers: { id: string; name: string }[];
@@ -60,13 +73,6 @@ export default function AttendanceReportView({
     }
   };
 
-  const dayTypeColors: Record<string, string> = {
-    normal: "text-slate-700 dark:text-slate-300",
-    holiday: "text-amber-400",
-    vacation: "text-emerald-400",
-    sick_leave: "text-red-400",
-  };
-
   void locale;
 
   return (
@@ -76,57 +82,41 @@ export default function AttendanceReportView({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* Filters */}
-        <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-          <CardContent className="pt-6">
+        <Card>
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSearch}>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="startDate"
-                    className="text-slate-700 dark:text-slate-300"
-                  >
-                    {t("startDate")}
-                  </Label>
+                  <Label htmlFor="startDate">{t("startDate")}</Label>
                   <Input
                     id="startDate"
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="bg-white border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    className="tabular-nums"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="endDate"
-                    className="text-slate-700 dark:text-slate-300"
-                  >
-                    {t("endDate")}
-                  </Label>
+                  <Label htmlFor="endDate">{t("endDate")}</Label>
                   <Input
                     id="endDate"
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate}
-                    className="bg-white border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    className="tabular-nums"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="center"
-                    className="text-slate-700 dark:text-slate-300"
-                  >
-                    {t("center")}
-                  </Label>
-                  <select
+                  <Label htmlFor="center">{t("center")}</Label>
+                  <NativeSelect
                     id="center"
                     value={centerId}
                     onChange={(e) => setCenterId(e.target.value)}
-                    className="w-full h-10 px-3 rounded-md bg-white border border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   >
                     <option value="">{t("allCenters")}</option>
                     {centers.map((c) => (
@@ -134,22 +124,22 @@ export default function AttendanceReportView({
                         {c.name}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
                 <div className="flex items-end">
                   <Button
                     type="submit"
                     disabled={loading || !startDate || !endDate}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                    className="h-12 w-full"
                   >
                     {loading ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                        <Loader2 className="animate-spin" />
                         {t("searching")}
                       </>
                     ) : (
                       <>
-                        <Search className="w-4 h-4 mr-1" />
+                        <Search />
                         {t("search")}
                       </>
                     )}
@@ -161,167 +151,152 @@ export default function AttendanceReportView({
         </Card>
 
         {/* Error */}
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
+        {error && <Alert variant="error">{error}</Alert>}
 
         {/* Results */}
         {records.length > 0 && (
           <>
             {/* Summary */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="bg-white/80 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-3">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex flex-wrap items-end gap-3 sm:gap-4">
+              <div className="min-w-36 flex-1 rounded-xl border bg-card px-4 py-3 shadow-sm sm:flex-none sm:px-5 sm:py-4">
+                <p className="text-sm text-muted-foreground">
                   {t("recordsCount")}
                 </p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                <p className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
                   {records.length}
                 </p>
               </div>
-              <div className="bg-white/80 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-3">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+              <div className="min-w-36 flex-1 rounded-xl border bg-card px-4 py-3 shadow-sm sm:flex-none sm:px-5 sm:py-4">
+                <p className="text-sm text-muted-foreground">
                   {t("totalHours")}
                 </p>
-                <p className="text-lg font-semibold text-slate-900 dark:text-white">
+                <p className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
                   {calculateTotalHours()}
                 </p>
               </div>
-              <ExportButtons
-                columns={[
-                  t("colWorker"),
-                  t("colCenter"),
-                  t("colDate"),
-                  t("colType"),
-                  t("colEntry"),
-                  t("colExit"),
-                  t("colBreak"),
-                  t("colTotal"),
-                ]}
-                rows={records.map((r) => [
-                  `${r.workerName} ${r.workerLastName}`,
-                  r.centerName,
-                  formatDate(r.day),
-                  getDayTypeLabel(r.typeDay),
-                  formatTime(r.startHour),
-                  formatTime(r.endHour),
-                  r.breakTotalHour ?? "—",
-                  r.totalHour ?? "—",
-                ])}
-                filename={`jornify-reporte-${startDate}-${endDate}`}
-                title={`${t("title")} ${startDate} — ${endDate}`}
-                disabled={records.length === 0}
-              />
+              <div className="sm:ml-auto">
+                <ExportButtons
+                  columns={[
+                    t("colWorker"),
+                    t("colCenter"),
+                    t("colDate"),
+                    t("colType"),
+                    t("colEntry"),
+                    t("colExit"),
+                    t("colBreak"),
+                    t("colTotal"),
+                  ]}
+                  rows={records.map((r) => [
+                    `${r.workerName} ${r.workerLastName}`,
+                    r.centerName,
+                    formatDate(r.day),
+                    getDayTypeLabel(r.typeDay),
+                    formatTime(r.startHour),
+                    formatTime(r.endHour),
+                    r.breakTotalHour ?? "—",
+                    r.totalHour ?? "—",
+                  ])}
+                  filename={`jornify-reporte-${startDate}-${endDate}`}
+                  title={`${t("title")} ${startDate} — ${endDate}`}
+                  disabled={records.length === 0}
+                />
+              </div>
             </div>
 
             {/* Table */}
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
               {/* Mobile cards */}
-              <div className="block md:hidden divide-y divide-slate-200 dark:divide-slate-700">
+              <ul className="divide-y md:hidden">
                 {records.map((r, idx) => (
-                  <div key={idx} className="p-4 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-slate-900 dark:text-white text-sm">
+                  <li key={idx} className="space-y-1.5 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm font-medium">
                         {r.workerName} {r.workerLastName}
                       </span>
-                      <span
-                        className={`text-xs ${dayTypeColors[r.typeDay] ?? "text-slate-300"}`}
+                      <StatusBadge
+                        size="sm"
+                        tone={DAY_TYPE_TONES[r.typeDay] ?? "neutral"}
                       >
                         {getDayTypeLabel(r.typeDay)}
-                      </span>
+                      </StatusBadge>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
                       <span>{formatDate(r.day)}</span>
-                      <span>{r.centerName}</span>
+                      <span className="truncate">{r.centerName}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-                      <span>
+                    <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+                      <span className="tabular-nums">
                         {formatTime(r.startHour)} — {formatTime(r.endHour)}
                       </span>
-                      <span className="text-slate-900 dark:text-white">
+                      <span className="font-medium text-foreground tabular-nums">
                         {r.totalHour ?? "—"}
                       </span>
                     </div>
                     {r.breakTotalHour && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-amber-400/80">
+                      <div className="flex items-center justify-between gap-3 text-sm text-pause-text">
+                        <span className="tabular-nums">
                           {t("breakLabel")} {formatTime(r.breakStartHour)} —{" "}
                           {formatTime(r.breakEndHour)}
                         </span>
-                        <span className="text-amber-400">
+                        <span className="font-medium tabular-nums">
                           {r.breakTotalHour}
                         </span>
                       </div>
                     )}
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
 
               {/* Desktop table */}
               <div className="hidden md:block">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-200 dark:border-slate-700 hover:bg-transparent">
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colWorker")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colCenter")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colDate")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colType")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colEntry")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colExit")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400">
-                        {t("colBreak")}
-                      </TableHead>
-                      <TableHead className="text-slate-500 dark:text-slate-400 text-right">
+                    <TableRow className="bg-secondary hover:bg-secondary">
+                      <TableHead className="pl-4">{t("colWorker")}</TableHead>
+                      <TableHead>{t("colCenter")}</TableHead>
+                      <TableHead>{t("colDate")}</TableHead>
+                      <TableHead>{t("colType")}</TableHead>
+                      <TableHead>{t("colEntry")}</TableHead>
+                      <TableHead>{t("colExit")}</TableHead>
+                      <TableHead>{t("colBreak")}</TableHead>
+                      <TableHead className="pr-4 text-right">
                         {t("colTotal")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {records.map((r, idx) => (
-                      <TableRow
-                        key={idx}
-                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/30"
-                      >
-                        <TableCell className="text-slate-900 dark:text-white font-medium">
+                      <TableRow key={idx}>
+                        <TableCell className="pl-4 font-medium">
                           {r.workerName} {r.workerLastName}
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">
-                          {r.centerName}
+                        <TableCell>{r.centerName}</TableCell>
+                        <TableCell>{formatDate(r.day)}</TableCell>
+                        <TableCell>
+                          <StatusBadge
+                            size="sm"
+                            tone={DAY_TYPE_TONES[r.typeDay] ?? "neutral"}
+                          >
+                            {getDayTypeLabel(r.typeDay)}
+                          </StatusBadge>
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">
-                          {formatDate(r.day)}
-                        </TableCell>
-                        <TableCell
-                          className={
-                            dayTypeColors[r.typeDay] ??
-                            "text-slate-700 dark:text-slate-300"
-                          }
-                        >
-                          {getDayTypeLabel(r.typeDay)}
-                        </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">
+                        <TableCell className="tabular-nums">
                           {formatTime(r.startHour)}
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">
+                        <TableCell className="tabular-nums">
                           {formatTime(r.endHour)}
                         </TableCell>
-                        <TableCell className="text-amber-400">
+                        <TableCell
+                          className={cn(
+                            "tabular-nums",
+                            r.breakTotalHour
+                              ? "text-pause-text"
+                              : "text-muted-foreground"
+                          )}
+                        >
                           {r.breakTotalHour ?? "—"}
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300 text-right">
+                        <TableCell className="pr-4 text-right font-medium tabular-nums">
                           {r.totalHour ?? "—"}
                         </TableCell>
                       </TableRow>
@@ -335,9 +310,14 @@ export default function AttendanceReportView({
 
         {/* Empty state after search */}
         {!loading && records.length === 0 && (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-            <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>{t("noResults")}</p>
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <Clock
+              className="size-10 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <p className="max-w-sm text-sm text-muted-foreground">
+              {t("noResults")}
+            </p>
           </div>
         )}
       </div>

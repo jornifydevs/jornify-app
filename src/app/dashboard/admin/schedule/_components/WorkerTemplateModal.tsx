@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { X, Save } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import type {
   WorkerScheduleTemplate,
   WorkerScheduleTemplateDay,
@@ -43,6 +46,7 @@ export default function WorkerTemplateModal({
   onClose,
 }: WorkerTemplateModalProps) {
   const t = useTranslations("dashboard.admin.schedule");
+  const titleId = useId();
 
   const [days, setDays] = useState<WorkerScheduleTemplateDay[]>(() => {
     if (existingTemplate && existingTemplate.days.length === 7) {
@@ -86,44 +90,53 @@ export default function WorkerTemplateModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50"
         onClick={onClose}
+        aria-hidden="true"
       />
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative w-full max-w-lg overflow-hidden rounded-2xl border bg-card shadow-float"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <div className="flex items-start justify-between gap-4 border-b px-4 py-4 sm:px-6">
+          <div className="min-w-0">
+            <h2 id={titleId} className="text-lg font-semibold tracking-tight">
               {t("configureTemplate")}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+            <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
               {workerName}
             </p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
             aria-label={t("cancel")}
+            className="-mr-2 -mt-1 shrink-0"
           >
-            <X className="w-4 h-4" />
-          </button>
+            <X />
+          </Button>
         </div>
 
         {/* Body */}
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 space-y-2 max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[60vh] space-y-2 overflow-y-auto px-4 py-4 sm:px-6">
             {orderedDays.map((day) => {
               const key = DAY_KEYS[day.dayOfWeek];
               return (
                 <div
                   key={day.dayOfWeek}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+                  className={cn(
+                    "flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border p-3 transition-colors",
                     day.isWorkingDay
-                      ? "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50"
-                      : "bg-slate-50 dark:bg-slate-700/30 border border-slate-200 dark:border-slate-700"
-                  }`}
+                      ? "bg-card"
+                      : "border-transparent bg-secondary/60"
+                  )}
                 >
                   {/* Toggle */}
                   <button
@@ -135,11 +148,12 @@ export default function WorkerTemplateModal({
                         !day.isWorkingDay
                       )
                     }
-                    className={`w-8 h-8 flex-shrink-0 rounded-lg text-xs font-bold transition-colors ${
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background [@media(pointer:coarse)]:size-11",
                       day.isWorkingDay
-                        ? "bg-orange-500 text-white"
-                        : "bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400"
-                    }`}
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                        : "border border-border-strong bg-card text-muted-foreground hover:text-foreground"
+                    )}
                     aria-label={
                       day.isWorkingDay ? t("notWorkingDay") : t("workingDay")
                     }
@@ -149,19 +163,20 @@ export default function WorkerTemplateModal({
 
                   {/* Label */}
                   <span
-                    className={`text-xs w-16 font-medium ${
+                    className={cn(
+                      "w-20 shrink-0 text-sm font-medium",
                       day.isWorkingDay
-                        ? "text-slate-700 dark:text-slate-200"
-                        : "text-slate-400 dark:text-slate-500"
-                    }`}
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    )}
                   >
                     {day.isWorkingDay ? t("workingDay") : t("notWorkingDay")}
                   </span>
 
                   {/* Time inputs */}
                   {day.isWorkingDay ? (
-                    <div className="flex items-center gap-2 flex-1">
-                      <input
+                    <div className="flex w-full items-center gap-2 sm:w-auto sm:flex-1">
+                      <Input
                         type="time"
                         value={toInput(day.startWorkday)}
                         onChange={(e) =>
@@ -171,10 +186,16 @@ export default function WorkerTemplateModal({
                             toStorage(e.target.value)
                           )
                         }
-                        className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                        aria-label={t("entry")}
+                        className="h-10 min-w-0 flex-1 px-3 tabular-nums [@media(pointer:coarse)]:h-11"
                       />
-                      <span className="text-xs text-slate-400">–</span>
-                      <input
+                      <span
+                        aria-hidden="true"
+                        className="text-muted-foreground"
+                      >
+                        –
+                      </span>
+                      <Input
                         type="time"
                         value={toInput(day.endWorkday)}
                         onChange={(e) =>
@@ -184,11 +205,12 @@ export default function WorkerTemplateModal({
                             toStorage(e.target.value)
                           )
                         }
-                        className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                        aria-label={t("exit")}
+                        className="h-10 min-w-0 flex-1 px-3 tabular-nums [@media(pointer:coarse)]:h-11"
                       />
                     </div>
                   ) : (
-                    <span className="flex-1 text-xs text-slate-400 dark:text-slate-500 italic">
+                    <span className="flex-1 text-sm text-muted-foreground">
                       {t("noWorkday")}
                     </span>
                   )}
@@ -198,22 +220,14 @@ export default function WorkerTemplateModal({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition-colors"
-            >
+          <div className="flex flex-col-reverse gap-2 border-t px-4 py-4 sm:flex-row sm:justify-end sm:gap-3 sm:px-6">
+            <Button type="button" variant="outline" onClick={onClose}>
               {t("cancel")}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors disabled:opacity-60 font-medium"
-            >
-              <Save className="w-3.5 h-3.5" />
+            </Button>
+            <Button type="submit" disabled={saving}>
+              <Save />
               {saving ? t("saving") : t("saveAndGenerate")}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

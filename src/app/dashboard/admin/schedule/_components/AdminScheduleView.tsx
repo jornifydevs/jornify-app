@@ -10,9 +10,15 @@ import {
   LayoutTemplate,
   Plus,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { cn } from "@/lib/utils";
 import type {
   Worker,
   Workday,
@@ -23,6 +29,24 @@ import type {
 import { useAdminSchedule } from "../_hooks/useAdminSchedule";
 import type { UpdateShiftInput } from "@/core/application/dtos/shifts.dto";
 import WorkerTemplateModal from "./WorkerTemplateModal";
+
+type BadgeTone = NonNullable<ComponentProps<typeof StatusBadge>["tone"]>;
+
+// Normal working days carry no badge; the other day types get their
+// categorical tone plus a text label so color is never the only signal.
+const DAY_TYPE_BADGES: Record<
+  string,
+  { tone: BadgeTone; labelKey: "dayHoliday" | "dayVacation" | "daySickLeave" }
+> = {
+  holiday: { tone: "brand", labelKey: "dayHoliday" },
+  vacation: { tone: "pause", labelKey: "dayVacation" },
+  sick_leave: { tone: "alert", labelKey: "daySickLeave" },
+};
+
+// Grid controls only show on hover where hovering exists; touch screens
+// always show them, with a 44px target.
+const GRID_ACTION_CLASSES =
+  "flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(pointer:coarse)]:size-11";
 
 interface AdminScheduleViewProps {
   centerId: string;
@@ -66,36 +90,46 @@ function EditShiftForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-wrap">
-      <input
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-wrap items-center justify-center gap-1.5"
+    >
+      <Input
         type="time"
         value={start}
         onChange={(e) => setStart(e.target.value)}
-        className="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+        aria-label={t("entry")}
+        className="h-11 w-28 px-2 tabular-nums [@media(pointer:fine)]:h-9"
       />
-      <span className="text-xs text-slate-400">–</span>
-      <input
+      <span aria-hidden="true" className="text-muted-foreground">
+        –
+      </span>
+      <Input
         type="time"
         value={end}
         onChange={(e) => setEnd(e.target.value)}
-        className="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+        aria-label={t("exit")}
+        className="h-11 w-28 px-2 tabular-nums [@media(pointer:fine)]:h-9"
       />
-      <button
+      <Button
         type="submit"
+        size="icon"
         disabled={saving}
-        className="p-1 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded transition-colors disabled:opacity-50"
         aria-label={t("saveShift")}
+        className="[@media(pointer:fine)]:size-9"
       >
-        <Check className="w-3.5 h-3.5" />
-      </button>
-      <button
+        <Check />
+      </Button>
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={onCancel}
-        className="p-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 rounded transition-colors"
         aria-label={t("cancel")}
+        className="[@media(pointer:fine)]:size-9"
       >
-        <X className="w-3.5 h-3.5" />
-      </button>
+        <X />
+      </Button>
     </form>
   );
 }
@@ -111,47 +145,52 @@ function SwapReviewCard({
 }) {
   const t = useTranslations("dashboard.admin.schedule");
   const [note, setNote] = useState("");
+  const noteId = `swap-note-${swap.id}`;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-4 space-y-3">
-      <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
-        <div>
-          <span className="font-medium text-slate-700 dark:text-slate-300">
-            {t("requester")}:{" "}
-          </span>
-          <span className="font-mono">{swap.requesterId.slice(0, 8)}</span>
+    <div className="space-y-4 rounded-xl border bg-card p-4 shadow-sm">
+      <dl className="grid grid-cols-2 gap-3 text-sm">
+        <div className="min-w-0">
+          <dt className="text-xs text-muted-foreground">{t("requester")}</dt>
+          <dd className="truncate font-mono font-medium">
+            {swap.requesterId.slice(0, 8)}
+          </dd>
         </div>
-        <div>
-          <span className="font-medium text-slate-700 dark:text-slate-300">
-            {t("target")}:{" "}
-          </span>
-          <span className="font-mono">{swap.targetId.slice(0, 8)}</span>
+        <div className="min-w-0">
+          <dt className="text-xs text-muted-foreground">{t("target")}</dt>
+          <dd className="truncate font-mono font-medium">
+            {swap.targetId.slice(0, 8)}
+          </dd>
         </div>
+      </dl>
+
+      <div className="space-y-2">
+        <Label htmlFor={noteId}>{t("adminNote")}</Label>
+        <Input
+          id={noteId}
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={t("adminNotePlaceholder")}
+        />
       </div>
 
-      <input
-        type="text"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder={t("adminNotePlaceholder")}
-        className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400"
-      />
-
       <div className="flex gap-2">
-        <button
+        <Button
           onClick={() => onReview(swap.id, true, note)}
           disabled={submitting}
-          className="flex-1 text-xs py-2 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg transition-colors disabled:opacity-50 font-medium"
+          className="flex-1"
         >
           {submitting ? t("approving") : t("approve")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => onReview(swap.id, false, note)}
           disabled={submitting}
-          className="flex-1 text-xs py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-colors disabled:opacity-50 font-medium"
+          className="flex-1 text-alert-text hover:bg-alert-soft hover:text-alert-text"
         >
           {submitting ? t("rejecting") : t("reject")}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -242,60 +281,62 @@ export default function AdminScheduleView({
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <div className="mx-auto max-w-7xl space-y-8 px-6 py-8">
         {/* Mensajes */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-600 dark:text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-        {successMessage && (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-green-600 dark:text-green-400 text-sm">
-            {successMessage}
-          </div>
-        )}
+        {error && <Alert variant="error">{error}</Alert>}
+        {successMessage && <Alert variant="success">{successMessage}</Alert>}
 
         {/* Week navigation */}
-        <div className="flex items-center justify-between">
-          <button
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            variant="outline"
+            size="icon"
             onClick={goToPreviousWeek}
-            className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
             aria-label={t("previousWeek")}
           >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+            <ChevronLeft />
+          </Button>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          <div className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:gap-3">
+            <span
+              aria-live="polite"
+              className="text-base font-semibold tabular-nums"
+            >
               {weekLabel}
             </span>
             {weekOffset !== 0 && (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={goToCurrentWeek}
-                className="flex items-center gap-1 px-3 py-1 text-xs bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-lg transition-colors"
+                className="max-sm:h-11"
               >
-                <RefreshCw className="w-3 h-3" />
+                <RefreshCw />
                 {tc("back" as never)}
-              </button>
+              </Button>
             )}
           </div>
 
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={goToNextWeek}
-            className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
             aria-label={t("nextWeek")}
           >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            <ChevronRight />
+          </Button>
         </div>
 
         {/* Workers schedule table */}
-        <div className="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30">
-                  <th className="text-left px-4 py-3 font-medium text-slate-600 dark:text-slate-400 min-w-[160px]">
+                <tr className="border-b bg-secondary">
+                  <th
+                    scope="col"
+                    className="min-w-[140px] px-4 py-3 text-left text-xs font-medium text-muted-foreground"
+                  >
                     {t("worker")}
                   </th>
                   {Array.from({ length: 7 }, (_, i) => {
@@ -308,11 +349,11 @@ export default function AdminScheduleView({
                     return (
                       <th
                         key={dateStr}
-                        className={`text-center px-3 py-3 font-medium text-xs min-w-[100px] ${
-                          isToday
-                            ? "text-orange-600 dark:text-orange-400"
-                            : "text-slate-500 dark:text-slate-400"
-                        }`}
+                        scope="col"
+                        className={cn(
+                          "min-w-[100px] px-3 py-3 text-center text-xs font-medium",
+                          isToday ? "text-brand-text" : "text-muted-foreground"
+                        )}
                       >
                         {d.toLocaleDateString(locale, {
                           weekday: "short",
@@ -320,7 +361,7 @@ export default function AdminScheduleView({
                           month: "short",
                         })}
                         {isToday && (
-                          <span className="block text-xs font-normal">
+                          <span className="block font-semibold">
                             ({t("today")})
                           </span>
                         )}
@@ -358,74 +399,116 @@ export default function AdminScheduleView({
                   return (
                     <tr
                       key={worker.id}
-                      className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
+                      className="border-b transition-colors last:border-0 hover:bg-accent/60"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-600 dark:text-slate-300 font-mono">
+                          <span className="font-mono text-xs font-medium">
                             {worker.id.slice(0, 8)}
                           </span>
                           <button
                             onClick={() => setTemplateModalWorkerId(worker.id)}
-                            className={`p-1 rounded transition-colors ${
+                            className={cn(
+                              "flex size-8 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [@media(pointer:coarse)]:size-11",
                               hasTemplate
-                                ? "text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                                : "text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                            }`}
-                            aria-label={t("configureTemplate")}
-                            title={t("configureTemplate")}
+                                ? "bg-brand-soft text-brand-text hover:bg-brand/20"
+                                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
+                            aria-label={
+                              hasTemplate
+                                ? t("editTemplate")
+                                : t("configureTemplate")
+                            }
+                            title={
+                              hasTemplate
+                                ? t("editTemplate")
+                                : t("configureTemplate")
+                            }
                           >
-                            <LayoutTemplate className="w-3.5 h-3.5" />
+                            <LayoutTemplate
+                              className="size-4"
+                              aria-hidden="true"
+                            />
                           </button>
                         </div>
                       </td>
-                      {weekDays.map(({ date, workday }) => (
-                        <td key={date} className="px-3 py-3 text-center">
-                          {workday ? (
-                            editingWorkdayId === workday.id ? (
-                              <EditShiftForm
-                                workday={workday}
-                                onSave={handleSaveShift}
-                                onCancel={() => setEditingWorkdayId(null)}
-                                saving={submitting}
-                              />
+                      {weekDays.map(({ date, workday }, index) => {
+                        const dayType = workday
+                          ? DAY_TYPE_BADGES[workday.typeDay]
+                          : undefined;
+                        return (
+                          <td
+                            key={date}
+                            className={cn(
+                              "px-3 py-3 text-center",
+                              index >= 5 && "bg-secondary/60"
+                            )}
+                          >
+                            {workday ? (
+                              editingWorkdayId === workday.id ? (
+                                <EditShiftForm
+                                  workday={workday}
+                                  onSave={handleSaveShift}
+                                  onCancel={() => setEditingWorkdayId(null)}
+                                  saving={submitting}
+                                />
+                              ) : (
+                                <div className="flex flex-col items-center gap-1">
+                                  <div className="group flex items-center justify-center gap-0.5">
+                                    <span className="whitespace-nowrap font-mono text-xs tabular-nums">
+                                      {formatHour(workday.startWorkday)}–
+                                      {formatHour(workday.endWorkday)}
+                                    </span>
+                                    <button
+                                      onClick={() =>
+                                        setEditingWorkdayId(workday.id)
+                                      }
+                                      className={cn(
+                                        GRID_ACTION_CLASSES,
+                                        "hover:bg-accent hover:text-foreground"
+                                      )}
+                                      aria-label={t("editShift")}
+                                    >
+                                      <Pencil
+                                        className="size-3.5"
+                                        aria-hidden="true"
+                                      />
+                                    </button>
+                                  </div>
+                                  {dayType && (
+                                    <StatusBadge size="sm" tone={dayType.tone}>
+                                      {t(dayType.labelKey)}
+                                    </StatusBadge>
+                                  )}
+                                </div>
+                              )
                             ) : (
-                              <div className="flex items-center justify-center gap-1 group">
-                                <span className="text-xs font-mono text-slate-700 dark:text-slate-200">
-                                  {formatHour(workday.startWorkday)}–
-                                  {formatHour(workday.endWorkday)}
+                              <div className="group grid place-items-center">
+                                <span
+                                  aria-hidden="true"
+                                  className="col-start-1 row-start-1 text-muted-foreground transition-opacity group-hover:opacity-0 group-has-[:focus-visible]:opacity-0 [@media(hover:none)]:opacity-0"
+                                >
+                                  —
                                 </span>
                                 <button
                                   onClick={() =>
-                                    setEditingWorkdayId(workday.id)
+                                    handleCreateWorkday(worker.id, date)
                                   }
-                                  className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-orange-500 transition-all"
-                                  aria-label={t("editShift")}
+                                  disabled={submitting}
+                                  className={cn(
+                                    GRID_ACTION_CLASSES,
+                                    "col-start-1 row-start-1 hover:bg-brand-soft hover:text-brand-text disabled:opacity-30"
+                                  )}
+                                  aria-label={t("addWorkday")}
+                                  title={t("addWorkday")}
                                 >
-                                  <Pencil className="w-3 h-3" />
+                                  <Plus className="size-4" aria-hidden="true" />
                                 </button>
                               </div>
-                            )
-                          ) : (
-                            <div className="group flex items-center justify-center">
-                              <button
-                                onClick={() =>
-                                  handleCreateWorkday(worker.id, date)
-                                }
-                                disabled={submitting}
-                                className="opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 hover:bg-orange-100 dark:bg-slate-700 dark:hover:bg-orange-900/30 text-slate-400 hover:text-orange-500 dark:text-slate-500 dark:hover:text-orange-400 transition-all disabled:opacity-30"
-                                aria-label={t("addWorkday")}
-                                title={t("addWorkday")}
-                              >
-                                <Plus className="w-3 h-3" />
-                              </button>
-                              <span className="group-hover:hidden text-xs text-slate-300 dark:text-slate-600">
-                                —
-                              </span>
-                            </div>
-                          )}
-                        </td>
-                      ))}
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })}
@@ -435,24 +518,29 @@ export default function AdminScheduleView({
         </div>
 
         {/* Pending swaps */}
-        <div className="space-y-4">
-          <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-4">
+          <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
             {t("pendingSwaps")}
             {pendingSwaps.length > 0 && (
-              <span className="ml-2 px-2 py-0.5 text-xs bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full">
+              <StatusBadge
+                tone="brand"
+                size="sm"
+                dot={false}
+                className="tabular-nums"
+              >
                 {pendingSwaps.length}
-              </span>
+              </StatusBadge>
             )}
           </h2>
 
           {loadingSwaps ? (
-            <div className="h-20 bg-slate-200 dark:bg-slate-700/50 rounded-xl animate-pulse" />
+            <div className="h-20 animate-pulse rounded-xl bg-track motion-reduce:animate-none" />
           ) : pendingSwaps.length === 0 ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+            <p className="text-sm text-muted-foreground">
               {t("noPendingSwaps")}
             </p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {pendingSwaps.map((swap) => (
                 <SwapReviewCard
                   key={swap.id}
@@ -465,7 +553,7 @@ export default function AdminScheduleView({
               ))}
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {/* Template modal */}
