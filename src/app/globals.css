@@ -56,6 +56,9 @@ body {
     --alert-text: 0.5 0.18 27;
     --alert-soft: oklch(0.965 0.025 25);
 
+    --shadow-float:
+      0 18px 40px -14px oklch(0.21 0.006 95 / 0.28),
+      0 4px 12px -4px oklch(0.21 0.006 95 / 0.08);
     --radius: 0.875rem;
   }
 
@@ -93,6 +96,9 @@ body {
     --pause-soft: oklch(0.74 0.1 235 / 0.15);
     --alert-text: 0.77 0.12 25;
     --alert-soft: oklch(0.7 0.18 25 / 0.14);
+
+    --shadow-float:
+      0 18px 40px -14px oklch(0 0 0 / 0.75), 0 4px 12px -4px oklch(0 0 0 / 0.45);
   }
 
   * {

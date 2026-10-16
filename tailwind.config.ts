@@ -84,6 +84,9 @@ export default {
         xl: "calc(var(--radius) + 6px)",
         "2xl": "calc(var(--radius) + 14px)",
       },
+      boxShadow: {
+        float: "var(--shadow-float)",
+      },
       keyframes: {
         "live-pulse": {
           "0%": { boxShadow: "0 0 0 0 oklch(var(--live) / 0.55)" },

@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import TimeTracker from "./TimeTracker";
-import UserMenu from "./UserMenu";
 import type { CenterFeature } from "@/core/domain/entities";
 
 interface WorkerDashboardProps {
@@ -59,7 +58,6 @@ export default async function WorkerDashboard({
             </p>
           </div>
         </Link>
-        <UserMenu enabledFeatures={enabledFeatures} />
       </header>
 
       <div className="mx-auto w-full max-w-lg flex-1 px-5 py-6 sm:py-8">
