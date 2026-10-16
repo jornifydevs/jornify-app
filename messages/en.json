@@ -509,24 +509,23 @@
       "billingManagementDesc": "Manage your company plan and billing"
     },
     "timeTracker": {
-      "scheduleTitle": "Today's schedule",
-      "entry": "Entry",
-      "exit": "Exit",
-      "breakFrom": "Break from",
-      "breakUntil": "Break until",
+      "todayLabel": "Today’s time tracking",
+      "shift": "Shift",
+      "break": "Break",
       "freeBreakAvailable": "Free break available",
-      "currentStatus": "Current Status",
-      "onBreak": "On Break",
-      "working": "Working",
-      "withinSchedule": "On Schedule",
-      "offDuty": "Off Duty",
-      "timeWorkedToday": "Time Worked Today",
+      "timelineLabel": "Workday from {start} to {end}",
+      "workingSince": "Working since {time}",
+      "onBreakSince": "On break since {time}",
+      "shiftStartsAt": "Your shift starts at {time}",
+      "shiftStartedAt": "Your shift started at {time}",
+      "offDuty": "Off duty",
+      "timeWorkedToday": "Time worked today",
       "breakTime": "Break time",
-      "endBreak": "End Break",
-      "startBreak": "Start Break",
-      "clockOut": "Clock Out",
-      "clockIn": "Clock In",
-      "confirmClockOutMessage": "Do you confirm you want to clock out?",
+      "endBreak": "End break",
+      "startBreak": "Start break",
+      "clockOut": "Clock out",
+      "clockIn": "Clock in",
+      "confirmClockOutMessage": "Do you want to clock out now?",
       "confirmClockOutYes": "Yes, clock out",
       "errors": {
         "clockIn": "Error clocking in",
@@ -692,6 +691,9 @@
       "view": "View",
       "download": "Download",
       "showing": "Showing {filtered} of {total} documents"
+    },
+    "worker": {
+      "greeting": "Hi, {name}"
     }
   },
   "superAdmin": {

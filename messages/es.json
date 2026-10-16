@@ -509,23 +509,22 @@
       "billingManagementDesc": "Gestiona el plan y la facturación de tu empresa"
     },
     "timeTracker": {
-      "scheduleTitle": "Horario del día",
-      "entry": "Entrada",
-      "exit": "Salida",
-      "breakFrom": "Descanso desde",
-      "breakUntil": "Descanso hasta",
+      "todayLabel": "Fichaje de hoy",
+      "shift": "Turno",
+      "break": "Descanso",
       "freeBreakAvailable": "Descanso libre disponible",
-      "currentStatus": "Estado Actual",
-      "onBreak": "En Descanso",
-      "working": "Trabajando",
-      "withinSchedule": "En Jornada",
-      "offDuty": "Fuera de Jornada",
-      "timeWorkedToday": "Tiempo Trabajado Hoy",
+      "timelineLabel": "Jornada de {start} a {end}",
+      "workingSince": "Trabajando desde las {time}",
+      "onBreakSince": "En descanso desde las {time}",
+      "shiftStartsAt": "Tu turno empieza a las {time}",
+      "shiftStartedAt": "Tu turno empezó a las {time}",
+      "offDuty": "Fuera de jornada",
+      "timeWorkedToday": "Tiempo trabajado hoy",
       "breakTime": "Tiempo en descanso",
-      "endBreak": "Finalizar Descanso",
-      "startBreak": "Iniciar Descanso",
-      "clockOut": "Marcar Salida",
-      "clockIn": "Marcar Entrada",
+      "endBreak": "Finalizar descanso",
+      "startBreak": "Iniciar descanso",
+      "clockOut": "Marcar salida",
+      "clockIn": "Marcar entrada",
       "confirmClockOutMessage": "¿Confirmas que quieres marcar la salida?",
       "confirmClockOutYes": "Sí, marcar salida",
       "errors": {
@@ -692,6 +691,9 @@
       "view": "Ver",
       "download": "Descargar",
       "showing": "Mostrando {filtered} de {total} documentos"
+    },
+    "worker": {
+      "greeting": "Hola, {name}"
     }
   },
   "superAdmin": {

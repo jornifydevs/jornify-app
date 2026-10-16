@@ -74,40 +74,25 @@ export default function UserMenu({ enabledFeatures }: UserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-track focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label={t("menuLabel")}
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="size-5" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48 bg-white border-slate-200 dark:bg-slate-800 dark:border-slate-700"
-      >
+      <DropdownMenuContent align="end" className="w-56 rounded-xl p-1.5">
         {visibleItems.map((item) => (
           <Fragment key={item.key}>
-            <DropdownMenuItem
-              asChild
-              className="focus:bg-slate-200 focus:text-slate-900 dark:focus:bg-slate-700 dark:focus:text-white"
-            >
-              <Link
-                href={item.href}
-                className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white cursor-pointer"
-              >
-                <item.icon className="w-4 h-4" />
+            <DropdownMenuItem asChild className="min-h-11 rounded-md">
+              <Link href={item.href} className="cursor-pointer">
+                <item.icon />
                 {item.label}
               </Link>
             </DropdownMenuItem>
             {item.key === CENTER_FEATURES.PROFILE && (
-              <DropdownMenuItem
-                asChild
-                className="focus:bg-slate-200 focus:text-slate-900 dark:focus:bg-slate-700 dark:focus:text-white"
-              >
-                <Link
-                  href="/dashboard/history"
-                  className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white cursor-pointer"
-                >
-                  <History className="w-4 h-4" />
+              <DropdownMenuItem asChild className="min-h-11 rounded-md">
+                <Link href="/dashboard/history" className="cursor-pointer">
+                  <History />
                   {t("history")}
                 </Link>
               </DropdownMenuItem>
@@ -116,32 +101,23 @@ export default function UserMenu({ enabledFeatures }: UserMenuProps) {
         ))}
 
         {!hasProfile && (
-          <DropdownMenuItem
-            asChild
-            className="focus:bg-slate-200 focus:text-slate-900 dark:focus:bg-slate-700 dark:focus:text-white"
-          >
-            <Link
-              href="/dashboard/history"
-              className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white cursor-pointer"
-            >
-              <History className="w-4 h-4" />
+          <DropdownMenuItem asChild className="min-h-11 rounded-md">
+            <Link href="/dashboard/history" className="cursor-pointer">
+              <History />
               {t("history")}
             </Link>
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem
           asChild
-          className="focus:bg-red-50 focus:text-red-600 dark:focus:bg-red-500/10 dark:focus:text-red-400"
+          className="min-h-11 rounded-md text-alert-text focus:bg-alert-soft focus:text-alert-text"
         >
           <form action="/auth/signout" method="post" className="w-full">
-            <button
-              type="submit"
-              className="flex items-center gap-2 w-full text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
-            >
-              <LogOut className="w-4 h-4" />
+            <button type="submit" className="flex w-full items-center gap-2">
+              <LogOut className="size-4" />
               {tc("signOut")}
             </button>
           </form>
