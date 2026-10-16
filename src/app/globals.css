@@ -1,15 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 html {
   scroll-behavior: smooth;
-}
-
-body {
-  ::selection {
-    background-color: #ffbe18;
-    color: #000000;
-  }
 }
 
 html,
@@ -17,66 +11,110 @@ body {
   height: 100%;
 }
 
+/*
+ * Colors are OKLCH channels ("L C H") so Tailwind can add opacity
+ * (`bg-brand/20`). The `*-soft` tones are complete colors because they
+ * carry their own transparency in dark mode.
+ */
 @layer base {
   :root {
-    --background: 210 20% 96%;
-    --foreground: 215 25% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-    --primary: 215 25% 15%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 210 16% 90%;
-    --secondary-foreground: 215 25% 15%;
-    --muted: 210 16% 90%;
-    --muted-foreground: 215 14% 45%;
-    --accent: 210 16% 90%;
-    --accent-foreground: 215 25% 15%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 16% 82%;
-    --input: 210 16% 82%;
-    --ring: 215 25% 15%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    color-scheme: light;
+
+    --background: 0.975 0.002 95;
+    --foreground: 0.21 0.006 95;
+    --card: 1 0 0;
+    --card-foreground: 0.21 0.006 95;
+    --popover: 1 0 0;
+    --popover-foreground: 0.21 0.006 95;
+    --primary: 0.21 0.006 95;
+    --primary-foreground: 0.99 0 0;
+    --secondary: 0.955 0.003 95;
+    --secondary-foreground: 0.21 0.006 95;
+    --muted: 0.955 0.003 95;
+    --muted-foreground: 0.47 0.008 95;
+    --accent: 0.955 0.003 95;
+    --accent-foreground: 0.21 0.006 95;
+    --destructive: 0.58 0.2 27;
+    --destructive-foreground: 1 0 0;
+    --border: 0.9 0.004 95;
+    --border-strong: 0.82 0.005 95;
+    --input: 0.66 0.006 95;
+    --ring: 0.55 0.16 42;
+    --track: 0.925 0.004 95;
+
+    --brand: 0.71 0.19 45;
+    --brand-foreground: 0.22 0.03 45;
+    --brand-text: 0.55 0.16 42;
+    --brand-soft: oklch(0.96 0.028 55);
+
+    --live: 0.58 0.14 152;
+    --live-text: 0.47 0.11 152;
+    --live-soft: oklch(0.96 0.035 152);
+    --pause: 0.6 0.12 240;
+    --pause-text: 0.48 0.12 245;
+    --pause-soft: oklch(0.96 0.02 240);
+    --alert-text: 0.5 0.18 27;
+    --alert-soft: oklch(0.965 0.025 25);
+
+    --radius: 0.875rem;
   }
+
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 0 0% 98%;
-    --card: 217 33% 17%;
-    --card-foreground: 0 0% 98%;
-    --popover: 217 33% 17%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 14% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 215 28% 25%;
-    --input: 215 28% 25%;
-    --ring: 215 14% 65%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    color-scheme: dark;
+
+    --background: 0.16 0.003 95;
+    --foreground: 0.965 0.003 95;
+    --card: 0.2 0.004 95;
+    --card-foreground: 0.965 0.003 95;
+    --popover: 0.22 0.004 95;
+    --popover-foreground: 0.965 0.003 95;
+    --primary: 0.965 0.003 95;
+    --primary-foreground: 0.2 0.004 95;
+    --secondary: 0.245 0.004 95;
+    --secondary-foreground: 0.965 0.003 95;
+    --muted: 0.245 0.004 95;
+    --muted-foreground: 0.73 0.007 95;
+    --accent: 0.245 0.004 95;
+    --accent-foreground: 0.965 0.003 95;
+    --border: 0.28 0.005 95;
+    --border-strong: 0.36 0.006 95;
+    --input: 0.5 0.006 95;
+    --ring: 0.71 0.19 45;
+    --track: 0.29 0.005 95;
+
+    --brand-text: 0.79 0.13 55;
+    --brand-soft: oklch(0.71 0.19 45 / 0.14);
+
+    --live: 0.76 0.15 152;
+    --live-text: 0.82 0.12 152;
+    --live-soft: oklch(0.76 0.15 152 / 0.14);
+    --pause: 0.74 0.1 235;
+    --pause-text: 0.82 0.08 235;
+    --pause-soft: oklch(0.74 0.1 235 / 0.15);
+    --alert-text: 0.77 0.12 25;
+    --alert-soft: oklch(0.7 0.18 25 / 0.14);
   }
-}
-@layer base {
+
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  ::selection {
+    background-color: oklch(var(--brand) / 0.3);
+    color: oklch(var(--foreground));
+  }
+}
+
+@layer utilities {
+  .bg-pause-stripes {
+    background-image: repeating-linear-gradient(
+      135deg,
+      oklch(var(--pause)) 0 3px,
+      oklch(var(--pause) / 0.45) 3px 6px
+    );
   }
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import type React from "react";
 import { cn } from "@/lib/utils";
@@ -10,8 +10,15 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { cookies } from "next/headers";
 
-const bricolageGrotesque = Bricolage_Grotesque({
+const geistSans = Geist({
   subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -40,13 +47,15 @@ export default async function RootLayout({
     | "light";
 
   return (
-    <html lang={locale} className={theme === "dark" ? "dark" : ""}>
-      <body
-        className={cn(
-          bricolageGrotesque.className,
-          "antialiased flex min-h-screen flex-col"
-        )}
-      >
+    <html
+      lang={locale}
+      className={cn(
+        geistSans.variable,
+        geistMono.variable,
+        theme === "dark" && "dark"
+      )}
+    >
+      <body className="font-sans antialiased flex min-h-screen flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PreviewBanner />
           <InactivityGuard>
