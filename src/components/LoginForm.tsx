@@ -7,7 +7,7 @@ import { createClient } from "@/infrastructure/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Clock } from "lucide-react";
+import { JornifyLogo } from "@/components/JornifyLogo";
 import { useTranslations } from "next-intl";
 
 export function LoginForm() {
@@ -44,9 +44,7 @@ export function LoginForm() {
       <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/50">
-              <Clock className="w-12 h-12 text-white" />
-            </div>
+            <JornifyLogo size="lg" />
           </div>
           <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             {t("title")}
