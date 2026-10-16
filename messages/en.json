@@ -49,7 +49,8 @@
         "grandTotal": "Total hours computed"
       }
     },
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "previewBanner": "PRE environment — connected to the pre-production Supabase"
   },
   "auth": {
     "login": {
@@ -119,7 +120,21 @@
         "subtitle": "Start managing your business today",
         "free": "Free",
         "perMonth": "€/mo",
-        "back": "Back"
+        "back": "Back",
+        "dayTypes": {
+          "holiday": "Public holidays",
+          "normal": "Regular working days",
+          "sick_leave": "Sick leave",
+          "vacation": "Vacation"
+        },
+        "features": {
+          "break": "Break tracking",
+          "calendar": "Work calendar",
+          "payroll": "Payroll management",
+          "profile": "Employee profile",
+          "schedule": "Shift management",
+          "vacation": "Vacation tracking"
+        }
       },
       "errors": {
         "passwordMismatch": "Passwords do not match",
@@ -227,7 +242,11 @@
           "reviewSwap": "Error processing request",
           "saveTemplate": "Error saving template",
           "createWorkday": "Error creating shift"
-        }
+        },
+        "dayHoliday": "Holiday",
+        "daySickLeave": "Sick leave",
+        "dayVacation": "Vacation",
+        "editTemplate": "Edit template"
       },
       "pendingSetup": {
         "title": "Account pending setup",
@@ -252,7 +271,8 @@
         "country": "Country",
         "dataUpdated": "Data updated successfully",
         "saving": "Saving...",
-        "saveChanges": "Save changes"
+        "saveChanges": "Save changes",
+        "nif": "Tax ID"
       },
       "invitationCodes": {
         "title": "Invitation Codes",
@@ -336,7 +356,8 @@
           "statusExpired": "Expired",
           "statusPending": "Pending",
           "errorGenerate": "Error generating codes",
-          "errorDelete": "Error deleting code"
+          "errorDelete": "Error deleting code",
+          "pendingCount": "{count, plural, one {# pending} other {# pending}}"
         },
         "unassigned": {
           "title": "Pending assignment",
@@ -355,9 +376,38 @@
           "contractFull": "Full time",
           "contractPart": "Part time",
           "contractTemp": "Temporary",
-          "contractIntern": "Internship"
+          "contractIntern": "Internship",
+          "dni": "ID number *"
         },
-        "registeredCount": "{count, plural, one {# registered worker} other {# registered workers}}"
+        "registeredCount": "{count, plural, one {# registered worker} other {# registered workers}}",
+        "close": "Close",
+        "colStatus": "Status",
+        "deleteWorkers": "{count, plural, one {Delete # worker} other {Delete # workers}}",
+        "deleteWorkersDescription": "{count, plural, one {<strong>#</strong> worker} other {<strong>#</strong> workers}} will be deleted along with all their records. This action cannot be undone.",
+        "importAllRows": "{count, plural, one {Import # worker} other {Import # workers}}",
+        "importErrors": {
+          "centerNotFound": "Center \"{center}\" not found",
+          "contractInvalid": "Invalid contract type \"{contract}\"",
+          "dniEmpty": "ID number is empty",
+          "emailEmpty": "Email is empty",
+          "emailInvalid": "Invalid email",
+          "hourWeekInvalid": "Invalid hours/week (1-168)",
+          "jobEmpty": "Job title is empty",
+          "lastNameEmpty": "Last name is empty",
+          "nameEmpty": "First name is empty"
+        },
+        "importRowError": "Row {row} ({email}): {error}",
+        "importValidRows": "{count, plural, one {Import # valid row} other {Import # valid rows}}",
+        "invalidRows": "{count, plural, one {# invalid row} other {# invalid rows}}",
+        "moveWorkers": "{count, plural, one {Move # worker} other {Move # workers}}",
+        "rowValid": "Valid",
+        "selectAll": "Select all",
+        "selectWorker": "Select {name}",
+        "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+        "selectedWorkers": "{count, plural, one {# worker selected} other {# workers selected}}",
+        "showingCount": "Showing {shown} of {count, plural, one {# worker} other {# workers}}",
+        "validRows": "{count, plural, one {# valid row} other {# valid rows}}",
+        "viewWorker": "View details for {name}"
       },
       "workerDetail": {
         "phone": "Phone",
@@ -394,7 +444,9 @@
         "dayNormal": "Normal",
         "dayHoliday": "Holiday",
         "dayVacation": "Vacation",
-        "daySickLeave": "Sick leave"
+        "daySickLeave": "Sick leave",
+        "email": "Email",
+        "hoursPerWeek": "{hours} h/week"
       },
       "centers": {
         "title": "Work Centers",
@@ -428,7 +480,12 @@
         "configureSchedule": "Configure schedule",
         "workerCount": "worker",
         "workerCountPlural": "workers",
-        "count": "{count, plural, one {# center} other {# centers}}"
+        "count": "{count, plural, one {# center} other {# centers}}",
+        "addressPlaceholder": "1 Main Street, Madrid",
+        "emailPlaceholder": "center@company.com",
+        "locationPlaceholder": "Madrid, Barcelona...",
+        "namePlaceholder": "North Center, Main Warehouse...",
+        "phonePlaceholder": "612 345 678"
       },
       "centerSchedule": {
         "pageSubtitle": "Center settings",
@@ -483,7 +540,12 @@
         "deleting": "Deleting...",
         "errorDelete": "Error deleting center.",
         "errorConnect": "Connection error. Please try again.",
-        "errorInfoRequired": "Name and address are required."
+        "errorInfoRequired": "Name and address are required.",
+        "deleteHoliday": "Delete {name}",
+        "emailPlaceholder": "center@company.com",
+        "nextYear": "Next year",
+        "phonePlaceholder": "612 345 678",
+        "previousYear": "Previous year"
       },
       "billing": {
         "title": "Subscription",
@@ -567,7 +629,9 @@
       "total": "Total",
       "errors": {
         "loadHistory": "Error loading history"
-      }
+      },
+      "inProgress": "In progress",
+      "period": "Period"
     },
     "userMenu": {
       "profile": "Profile",
@@ -622,7 +686,9 @@
           "loadSwaps": "Error loading swap requests",
           "submitSwap": "Error sending swap request",
           "cancelSwap": "Error cancelling swap request"
-        }
+        },
+        "day": "Day",
+        "month": "Month"
       },
       "errors": {
         "loadSchedule": "Error loading schedule"
@@ -678,7 +744,8 @@
       "allYears": "All years",
       "noRecords": "No days off registered",
       "showing": "Showing {count} day off",
-      "showingPlural": "Showing {count} days off"
+      "showingPlural": "Showing {count} days off",
+      "year": "Year"
     },
     "calendar": {
       "title": "Work Calendar",
@@ -689,7 +756,10 @@
       "today": "Today",
       "national": "National",
       "regional": "Regional",
-      "local": "Local"
+      "local": "Local",
+      "holidayCount": "{count, plural, one {# holiday} other {# holidays}}",
+      "nextMonth": "Next month",
+      "previousMonth": "Previous month"
     },
     "payroll": {
       "title": "My Payslips",
@@ -704,7 +774,8 @@
       "colActions": "Actions",
       "view": "View",
       "download": "Download",
-      "showing": "Showing {filtered} of {total} documents"
+      "showing": "Showing {filtered} of {total} documents",
+      "year": "Year"
     },
     "worker": {
       "greeting": "Hi, {name}"
@@ -713,6 +784,18 @@
       "label": "Main navigation",
       "home": "Home",
       "more": "More"
+    },
+    "pending": {
+      "assignment": {
+        "message": "Your account has been created. An administrator will soon assign you to your work center and complete your profile.",
+        "title": "Account pending assignment"
+      },
+      "profile": {
+        "hint": "If you have just confirmed your email, wait a few seconds and reload the page. If the problem persists, contact your administrator.",
+        "message": "Your sign-in account has been created, but your profile is not ready yet.",
+        "title": "Account pending activation"
+      },
+      "reload": "Reload"
     }
   },
   "superAdmin": {
@@ -722,6 +805,48 @@
     "companies": "Companies",
     "totalCenters": "Total Centers",
     "companyManagement": "Company Management",
-    "companyManagementDesc": "Create, edit and delete companies. Configure features per center."
+    "companyManagementDesc": "Create, edit and delete companies. Configure features per center.",
+    "companyDetail": {
+      "centersAndFeatures": "Centers and features",
+      "companyData": "Company data",
+      "companySaved": "Company data saved successfully",
+      "errorUpdateCompany": "Error updating the company",
+      "errorUpdateFeatures": "Error updating the features",
+      "featuresSaved": "Changes saved",
+      "noCenters": "This company has no registered centers",
+      "saveChanges": "Save changes",
+      "saving": "Saving...",
+      "workerCount": "{count, plural, one {# worker} other {# workers}}"
+    },
+    "companyList": {
+      "addressPlaceholder": "Full address",
+      "businessNamePlaceholder": "Legal name",
+      "confirmDelete": "Delete the company \"{name}\"? This action cannot be undone.",
+      "createCompany": "Create company",
+      "creating": "Creating...",
+      "emailPlaceholder": "company@email.com",
+      "empty": "No companies found",
+      "errorCreate": "Error creating the company",
+      "errorDelete": "Error deleting the company",
+      "namePlaceholder": "Company name",
+      "newCompany": "New company",
+      "nifValue": "Tax ID: {nif}",
+      "searchPlaceholder": "Search by name or tax ID..."
+    },
+    "features": {
+      "break": "Break",
+      "calendar": "Calendar",
+      "payroll": "Payroll",
+      "profile": "Profile",
+      "schedule": "Shifts",
+      "vacation": "Vacation"
+    },
+    "fields": {
+      "address": "Address",
+      "businessName": "Legal name",
+      "email": "Email",
+      "name": "Name",
+      "nif": "Tax ID"
+    }
   }
 }

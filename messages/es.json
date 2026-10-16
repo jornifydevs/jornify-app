@@ -25,21 +25,21 @@
       "noData": "Sin registros en este período",
       "fetchError": "Error al obtener los registros",
       "registro": {
-        "title": "Registro de Jornada Laboral",
+        "title": "Registro de jornada laboral",
         "period": "Período",
-        "company": "Empresa / Razón Social",
+        "company": "Empresa / razón social",
         "nif": "CIF/NIF",
-        "ccc": "Cód. Cuenta Cotización",
+        "ccc": "Cód. cuenta de cotización",
         "worker": "Trabajador/a",
         "dni": "DNI/NIE",
-        "nss": "Nº Afiliación SS",
+        "nss": "Nº afiliación SS",
         "date": "Fecha",
         "entry": "Entrada",
         "exit": "Salida",
-        "breakStart": "Inicio Pausa",
-        "breakEnd": "Fin Pausa",
-        "breakTotal": "Total Pausa",
-        "totalHours": "Total Horas",
+        "breakStart": "Inicio pausa",
+        "breakEnd": "Fin pausa",
+        "breakTotal": "Total pausa",
+        "totalHours": "Total horas",
         "signature": "Firma",
         "signedYes": "✓",
         "signedNo": "—",
@@ -49,23 +49,24 @@
         "grandTotal": "Cómputo total de horas"
       }
     },
-    "toggleTheme": "Cambiar tema"
+    "toggleTheme": "Cambiar tema",
+    "previewBanner": "Entorno de PRE — conectado a Supabase de pre-producción"
   },
   "auth": {
     "login": {
-      "title": "Gestión de Horarios",
+      "title": "Gestión de horarios",
       "subtitle": "Inicia sesión para registrar tu jornada laboral",
-      "email": "Correo Electrónico",
+      "email": "Correo electrónico",
       "emailPlaceholder": "tu@email.com",
       "password": "Contraseña",
-      "submit": "Iniciar Sesión",
+      "submit": "Iniciar sesión",
       "submitting": "Iniciando sesión...",
       "noAccount": "¿No tienes cuenta?",
       "register": "Regístrate aquí",
       "sessionExpired": "Tu sesión se ha cerrado por inactividad. Por favor, inicia sesión de nuevo."
     },
     "register": {
-      "title": "Crear Cuenta",
+      "title": "Crear cuenta",
       "subtitle": "Regístrate para comenzar a gestionar tus horarios",
       "worker": "Trabajador",
       "company": "Empresa",
@@ -77,18 +78,18 @@
       "dniPlaceholder": "12345678A",
       "phone": "Teléfono",
       "phonePlaceholder": "612345678",
-      "email": "Correo Electrónico",
+      "email": "Correo electrónico",
       "emailPlaceholder": "tu@email.com",
       "password": "Contraseña",
       "passwordPlaceholder": "Mínimo 6 caracteres",
-      "confirmPassword": "Confirmar Contraseña",
+      "confirmPassword": "Confirmar contraseña",
       "confirmPasswordPlaceholder": "Repite tu contraseña",
-      "companyCode": "Código de Empresa",
+      "companyCode": "Código de empresa",
       "companyCodePlaceholder": "JORNIFY-XXXX-XXXX",
       "adminName": "Nombre",
       "adminLastName": "Apellidos",
       "responsibleSection": "Responsable",
-      "companyDataSection": "Datos de la Empresa",
+      "companyDataSection": "Datos de la empresa",
       "country": "País",
       "emailAlreadyRegistered": "Este correo electrónico ya está registrado",
       "nifAlreadyRegistered": "Este NIF ya está registrado en el sistema",
@@ -97,11 +98,11 @@
       "processing": "Procesando...",
       "companyNif": "NIF",
       "companyNifPlaceholder": "B12345678",
-      "companyName": "Nombre de la Empresa",
+      "companyName": "Nombre de la empresa",
       "companyNamePlaceholder": "Mi Empresa S.L.",
-      "companyTradeName": "Nombre Comercial",
+      "companyTradeName": "Nombre comercial",
       "companyTradeNamePlaceholder": "Mi Marca",
-      "companyEmail": "Correo Electrónico",
+      "companyEmail": "Correo electrónico",
       "companyEmailPlaceholder": "empresa@email.com",
       "companyAddress": "Dirección",
       "companyAddressPlaceholder": "Calle Principal 123, Ciudad",
@@ -110,16 +111,30 @@
       "hasAccount": "¿Ya tienes cuenta?",
       "loginHere": "Inicia sesión aquí",
       "success": {
-        "title": "¡Cuenta Creada!",
+        "title": "¡Cuenta creada!",
         "message": "Se ha enviado un correo de confirmación a <strong>{email}</strong>. Por favor, revisa tu bandeja de entrada y confirma tu cuenta.",
-        "goToLogin": "Ir al Login"
+        "goToLogin": "Ir al inicio de sesión"
       },
       "planSelection": {
         "title": "Elige tu plan",
         "subtitle": "Empieza a gestionar tu empresa hoy mismo",
         "free": "Gratis",
         "perMonth": "€/mes",
-        "back": "Volver"
+        "back": "Volver",
+        "dayTypes": {
+          "holiday": "Festivos",
+          "normal": "Días laborales normales",
+          "sick_leave": "Baja médica",
+          "vacation": "Vacaciones"
+        },
+        "features": {
+          "break": "Control de descansos",
+          "calendar": "Calendario laboral",
+          "payroll": "Gestión de nóminas",
+          "profile": "Perfil de empleado",
+          "schedule": "Gestión de turnos",
+          "vacation": "Control de vacaciones"
+        }
       },
       "errors": {
         "passwordMismatch": "Las contraseñas no coinciden",
@@ -133,18 +148,18 @@
   },
   "dashboard": {
     "admin": {
-      "title": "Panel de Administración",
+      "title": "Panel de administración",
       "welcome": "Bienvenido, {name}",
       "welcomeMessage": "Gestiona trabajadores, centros y horarios desde este panel",
-      "totalWorkers": "Total Trabajadores",
-      "workCenters": "Centros de Trabajo",
-      "activeToday": "Activos Hoy",
-      "workerManagement": "Gestión de Trabajadores",
+      "totalWorkers": "Total de trabajadores",
+      "workCenters": "Centros de trabajo",
+      "activeToday": "Activos hoy",
+      "workerManagement": "Gestión de trabajadores",
       "workerManagementDesc": "Ver, buscar y gestionar todos los trabajadores",
-      "centerManagement": "Gestión de Centros",
+      "centerManagement": "Gestión de centros",
       "centerManagementDesc": "Administrar centros de trabajo y sus configuraciones",
       "reports": {
-        "title": "Reportes de Fichajes",
+        "title": "Informes de fichajes",
         "subtitle": "Consulta registros por fecha y centro",
         "startDate": "Fecha inicio",
         "endDate": "Fecha fin",
@@ -170,12 +185,12 @@
         "daySickLeave": "Baja médica"
       },
       "reportsDesc": "Consultar registros de entrada y salida por fecha y centro",
-      "companyManagement": "Gestión de Empresa",
+      "companyManagement": "Gestión de empresa",
       "companyManagementDesc": "Editar datos de la empresa y subir el logo corporativo",
-      "scheduleManagement": "Gestión de Turnos",
+      "scheduleManagement": "Gestión de turnos",
       "scheduleManagementDesc": "Editar turnos de trabajadores y gestionar solicitudes de cambio",
       "schedule": {
-        "pageTitle": "Gestión de Turnos",
+        "pageTitle": "Gestión de turnos",
         "selectCenter": "Selecciona un centro",
         "noScheduleFeature": "Este centro no tiene la funcionalidad de turnos activada",
         "weekLabel": "{start} – {end}",
@@ -227,14 +242,18 @@
           "reviewSwap": "Error al procesar la solicitud",
           "saveTemplate": "Error al guardar la plantilla",
           "createWorkday": "Error al crear el turno"
-        }
+        },
+        "dayHoliday": "Festivo",
+        "daySickLeave": "Baja médica",
+        "dayVacation": "Vacaciones",
+        "editTemplate": "Editar plantilla"
       },
       "pendingSetup": {
         "title": "Cuenta pendiente de configuración",
         "message": "Tu cuenta de administrador aún no ha sido asignada a una empresa. Contacta con el administrador de la plataforma."
       },
       "company": {
-        "title": "Gestión de Empresa",
+        "title": "Gestión de empresa",
         "logoSection": "Logo de la empresa",
         "uploading": "Subiendo...",
         "changeLogo": "Cambiar logo",
@@ -252,10 +271,11 @@
         "country": "País",
         "dataUpdated": "Datos actualizados correctamente",
         "saving": "Guardando...",
-        "saveChanges": "Guardar cambios"
+        "saveChanges": "Guardar cambios",
+        "nif": "NIF"
       },
       "invitationCodes": {
-        "title": "Códigos de Invitación",
+        "title": "Códigos de invitación",
         "generating": "Generando...",
         "generateCode": "Generar código",
         "errorGenerate": "Error al generar el código",
@@ -275,7 +295,7 @@
         "activeCount": "{count, plural, one {# código activo} other {# códigos activos}}"
       },
       "workers": {
-        "title": "Gestión de Trabajadores",
+        "title": "Gestión de trabajadores",
         "addWorker": "Añadir trabajador",
         "importExcel": "Importar Excel",
         "searchPlaceholder": "Buscar por nombre, email o DNI...",
@@ -323,7 +343,7 @@
         "importingProgress": "Importando {current} de {total}...",
         "changeFile": "Cambiar archivo",
         "panel": {
-          "title": "Códigos de Invitación",
+          "title": "Códigos de invitación",
           "quantity": "Cantidad",
           "generating": "Generando...",
           "generateCode": "Generar código",
@@ -336,7 +356,8 @@
           "statusExpired": "Expirado",
           "statusPending": "Pendiente",
           "errorGenerate": "Error al generar los códigos",
-          "errorDelete": "Error al eliminar el código"
+          "errorDelete": "Error al eliminar el código",
+          "pendingCount": "{count, plural, one {# pendiente} other {# pendientes}}"
         },
         "unassigned": {
           "title": "Pendientes de asignación",
@@ -355,9 +376,38 @@
           "contractFull": "Tiempo completo",
           "contractPart": "Tiempo parcial",
           "contractTemp": "Temporal",
-          "contractIntern": "Prácticas"
+          "contractIntern": "Prácticas",
+          "dni": "DNI *"
         },
-        "registeredCount": "{count, plural, one {# trabajador registrado} other {# trabajadores registrados}}"
+        "registeredCount": "{count, plural, one {# trabajador registrado} other {# trabajadores registrados}}",
+        "close": "Cerrar",
+        "colStatus": "Estado",
+        "deleteWorkers": "{count, plural, one {Eliminar # trabajador} other {Eliminar # trabajadores}}",
+        "deleteWorkersDescription": "{count, plural, one {Se eliminará <strong>#</strong> trabajador} other {Se eliminarán <strong>#</strong> trabajadores}} junto con todos sus registros. Esta acción no se puede deshacer.",
+        "importAllRows": "{count, plural, one {Importar # trabajador} other {Importar # trabajadores}}",
+        "importErrors": {
+          "centerNotFound": "Centro \"{center}\" no encontrado",
+          "contractInvalid": "Tipo contrato \"{contract}\" inválido",
+          "dniEmpty": "DNI vacío",
+          "emailEmpty": "Email vacío",
+          "emailInvalid": "Email inválido",
+          "hourWeekInvalid": "Horas/semana inválidas (1-168)",
+          "jobEmpty": "Puesto vacío",
+          "lastNameEmpty": "Apellidos vacíos",
+          "nameEmpty": "Nombre vacío"
+        },
+        "importRowError": "Fila {row} ({email}): {error}",
+        "importValidRows": "{count, plural, one {Importar # fila válida} other {Importar # filas válidas}}",
+        "invalidRows": "{count, plural, one {# fila inválida} other {# filas inválidas}}",
+        "moveWorkers": "{count, plural, one {Mover # trabajador} other {Mover # trabajadores}}",
+        "rowValid": "Válida",
+        "selectAll": "Seleccionar todos",
+        "selectWorker": "Seleccionar a {name}",
+        "selectedCount": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+        "selectedWorkers": "{count, plural, one {# trabajador seleccionado} other {# trabajadores seleccionados}}",
+        "showingCount": "Mostrando {shown} de {count, plural, one {# trabajador} other {# trabajadores}}",
+        "validRows": "{count, plural, one {# fila válida} other {# filas válidas}}",
+        "viewWorker": "Ver detalles de {name}"
       },
       "workerDetail": {
         "phone": "Teléfono",
@@ -394,10 +444,12 @@
         "dayNormal": "Normal",
         "dayHoliday": "Festivo",
         "dayVacation": "Vacaciones",
-        "daySickLeave": "Baja médica"
+        "daySickLeave": "Baja médica",
+        "email": "Email",
+        "hoursPerWeek": "{hours} h/sem"
       },
       "centers": {
-        "title": "Centros de Trabajo",
+        "title": "Centros de trabajo",
         "newCenter": "Nuevo centro",
         "cancel": "Cancelar",
         "createCenterTitle": "Nuevo centro de trabajo",
@@ -428,11 +480,16 @@
         "configureSchedule": "Configurar horario",
         "workerCount": "trabajador",
         "workerCountPlural": "trabajadores",
-        "count": "{count, plural, one {# centro} other {# centros}}"
+        "count": "{count, plural, one {# centro} other {# centros}}",
+        "addressPlaceholder": "Calle Mayor 1, Madrid",
+        "emailPlaceholder": "centro@empresa.com",
+        "locationPlaceholder": "Madrid, Barcelona...",
+        "namePlaceholder": "Centro Norte, Almacén Principal...",
+        "phonePlaceholder": "612 345 678"
       },
       "centerSchedule": {
         "pageSubtitle": "Configuración de centro",
-        "centerInfo": "Información del Centro",
+        "centerInfo": "Información del centro",
         "infoUpdated": "Información actualizada correctamente",
         "name": "Nombre",
         "address": "Dirección",
@@ -445,25 +502,25 @@
         "regionPlaceholder": "Región o municipio...",
         "saveInfo": "Guardar información",
         "savingInfo": "Guardando...",
-        "scheduleTitle": "Horario de Trabajo",
-        "entryTime": "Hora de Entrada",
-        "exitTime": "Hora de Salida",
-        "breakConfig": "Configuración de Descanso",
-        "breakType": "Tipo de Descanso",
+        "scheduleTitle": "Horario de trabajo",
+        "entryTime": "Hora de entrada",
+        "exitTime": "Hora de salida",
+        "breakConfig": "Configuración del descanso",
+        "breakType": "Tipo de descanso",
         "breakNone": "Ninguno",
         "breakNoneDesc": "Sin descanso",
         "breakFree": "Libre",
         "breakFreeDesc": "El trabajador decide",
         "breakScheduled": "Programado",
         "breakScheduledDesc": "Horario fijo",
-        "breakStart": "Inicio del Descanso",
-        "breakEnd": "Fin del Descanso",
+        "breakStart": "Inicio del descanso",
+        "breakEnd": "Fin del descanso",
         "breakDisabled": "La funcionalidad de descanso no está habilitada para este centro. Contacta con el administrador de la plataforma.",
-        "saveSchedule": "Guardar Horario",
+        "saveSchedule": "Guardar horario",
         "saving": "Guardando...",
         "scheduleUpdated": "Horario actualizado correctamente",
         "errorSchedule": "Error al actualizar el horario",
-        "localHolidays": "Festivos Locales",
+        "localHolidays": "Festivos locales",
         "localHolidaysDesc": "Festivos municipales del centro según su dirección:",
         "holidayDate": "Fecha",
         "holidayName": "Nombre",
@@ -483,11 +540,16 @@
         "deleting": "Eliminando...",
         "errorDelete": "Error al eliminar el centro.",
         "errorConnect": "Error de conexión. Inténtalo de nuevo.",
-        "errorInfoRequired": "El nombre y la dirección son obligatorios."
+        "errorInfoRequired": "El nombre y la dirección son obligatorios.",
+        "deleteHoliday": "Eliminar {name}",
+        "emailPlaceholder": "centro@empresa.com",
+        "nextYear": "Año siguiente",
+        "phonePlaceholder": "612 345 678",
+        "previousYear": "Año anterior"
       },
       "billing": {
         "title": "Suscripción",
-        "pageTitle": "Estado de la Suscripción",
+        "pageTitle": "Estado de la suscripción",
         "pageSubtitle": "Gestiona el plan de tu empresa",
         "status": {
           "active": "Activa",
@@ -551,14 +613,14 @@
       }
     },
     "history": {
-      "title": "Historial de Registros",
-      "pageTitle": "Histórico de Registros",
+      "title": "Historial de registros",
+      "pageTitle": "Histórico de registros",
       "today": "Hoy",
       "week": "Semana",
       "month": "Mes",
       "previousPeriod": "Período anterior",
       "nextPeriod": "Período siguiente",
-      "totalHours": "Total de Horas",
+      "totalHours": "Total de horas",
       "noRecords": "No hay registros para mostrar",
       "date": "Fecha",
       "entry": "Entrada",
@@ -567,7 +629,9 @@
       "total": "Total",
       "errors": {
         "loadHistory": "Error al cargar el historial"
-      }
+      },
+      "inProgress": "En curso",
+      "period": "Período"
     },
     "userMenu": {
       "profile": "Perfil",
@@ -622,23 +686,25 @@
           "loadSwaps": "Error al cargar las solicitudes",
           "submitSwap": "Error al enviar la solicitud",
           "cancelSwap": "Error al cancelar la solicitud"
-        }
+        },
+        "day": "Día",
+        "month": "Mes"
       },
       "errors": {
         "loadSchedule": "Error al cargar el horario"
       }
     },
     "footer": {
-      "privacyPolicy": "Política de Privacidad",
-      "termsAndConditions": "Términos y Condiciones",
+      "privacyPolicy": "Política de privacidad",
+      "termsAndConditions": "Términos y condiciones",
       "copyright": "© {year} Jornify. Todos los derechos reservados."
     },
     "profile": {
-      "title": "Mi Perfil",
+      "title": "Mi perfil",
       "uploading": "Subiendo...",
       "changeAvatar": "Cambiar foto de perfil",
       "avatarUpdated": "Foto actualizada correctamente",
-      "personalData": "Datos Personales",
+      "personalData": "Datos personales",
       "name": "Nombre",
       "namePlaceholder": "Tu nombre",
       "lastName": "Apellidos",
@@ -649,8 +715,8 @@
       "phonePlaceholder": "Tu teléfono",
       "profileUpdated": "Perfil actualizado correctamente",
       "saving": "Guardando...",
-      "saveChanges": "Guardar Cambios",
-      "changePassword": "Cambiar Contraseña",
+      "saveChanges": "Guardar cambios",
+      "changePassword": "Cambiar contraseña",
       "currentPassword": "Contraseña actual",
       "currentPasswordPlaceholder": "Tu contraseña actual",
       "newPassword": "Nueva contraseña",
@@ -659,7 +725,7 @@
       "confirmPasswordPlaceholder": "Repite la contraseña",
       "passwordUpdated": "Contraseña actualizada correctamente",
       "updatingPassword": "Actualizando...",
-      "changePwdBtn": "Cambiar Contraseña"
+      "changePwdBtn": "Cambiar contraseña"
     },
     "availability": {
       "title": "Disponibilidad",
@@ -678,10 +744,11 @@
       "allYears": "Todos los años",
       "noRecords": "No hay días libres registrados",
       "showing": "Mostrando {count} día libre",
-      "showingPlural": "Mostrando {count} días libres"
+      "showingPlural": "Mostrando {count} días libres",
+      "year": "Año"
     },
     "calendar": {
-      "title": "Calendario Laboral",
+      "title": "Calendario laboral",
       "holidays": "Festivos {year}",
       "noHolidays": "No hay festivos",
       "loading": "Cargando...",
@@ -689,10 +756,13 @@
       "today": "Hoy",
       "national": "Nacional",
       "regional": "Autonómico",
-      "local": "Local"
+      "local": "Local",
+      "holidayCount": "{count, plural, one {# festivo} other {# festivos}}",
+      "nextMonth": "Mes siguiente",
+      "previousMonth": "Mes anterior"
     },
     "payroll": {
-      "title": "Mis Nóminas",
+      "title": "Mis nóminas",
       "documents": "Documentos",
       "searchPlaceholder": "Buscar por nombre...",
       "allYears": "Todos los años",
@@ -704,7 +774,8 @@
       "colActions": "Acciones",
       "view": "Ver",
       "download": "Descargar",
-      "showing": "Mostrando {filtered} de {total} documentos"
+      "showing": "Mostrando {filtered} de {total} documentos",
+      "year": "Año"
     },
     "worker": {
       "greeting": "Hola, {name}"
@@ -713,6 +784,18 @@
       "label": "Navegación principal",
       "home": "Inicio",
       "more": "Más"
+    },
+    "pending": {
+      "assignment": {
+        "message": "Tu cuenta ha sido creada correctamente. En breve, un administrador te asignará a tu centro de trabajo y completará tu perfil.",
+        "title": "Cuenta pendiente de asignación"
+      },
+      "profile": {
+        "hint": "Si acabas de confirmar tu email, espera unos segundos y recarga la página. Si el problema persiste, contacta con el administrador.",
+        "message": "Tu cuenta de acceso se ha creado pero el perfil aún no está listo.",
+        "title": "Cuenta pendiente de activación"
+      },
+      "reload": "Recargar"
     }
   },
   "superAdmin": {
@@ -720,8 +803,50 @@
     "panelTitle": "Panel Super Admin",
     "panelDescription": "Gestiona empresas, centros y funcionalidades de la plataforma",
     "companies": "Empresas",
-    "totalCenters": "Centros Totales",
-    "companyManagement": "Gestión de Empresas",
-    "companyManagementDesc": "Crear, editar y eliminar empresas. Configurar funcionalidades por centro."
+    "totalCenters": "Total de centros",
+    "companyManagement": "Gestión de empresas",
+    "companyManagementDesc": "Crear, editar y eliminar empresas. Configurar funcionalidades por centro.",
+    "companyDetail": {
+      "centersAndFeatures": "Centros y funcionalidades",
+      "companyData": "Datos de la empresa",
+      "companySaved": "Datos de la empresa guardados correctamente",
+      "errorUpdateCompany": "Error al actualizar la empresa",
+      "errorUpdateFeatures": "Error al actualizar funcionalidades",
+      "featuresSaved": "Se han guardado los cambios",
+      "noCenters": "Esta empresa no tiene centros registrados",
+      "saveChanges": "Guardar cambios",
+      "saving": "Guardando...",
+      "workerCount": "{count, plural, one {# trabajador} other {# trabajadores}}"
+    },
+    "companyList": {
+      "addressPlaceholder": "Dirección completa",
+      "businessNamePlaceholder": "Razón social",
+      "confirmDelete": "¿Eliminar la empresa \"{name}\"? Esta acción no se puede deshacer.",
+      "createCompany": "Crear empresa",
+      "creating": "Creando...",
+      "emailPlaceholder": "empresa@email.com",
+      "empty": "No se encontraron empresas",
+      "errorCreate": "Error al crear la empresa",
+      "errorDelete": "Error al eliminar la empresa",
+      "namePlaceholder": "Nombre de la empresa",
+      "newCompany": "Nueva empresa",
+      "nifValue": "NIF: {nif}",
+      "searchPlaceholder": "Buscar por nombre o NIF..."
+    },
+    "features": {
+      "break": "Descanso",
+      "calendar": "Calendario",
+      "payroll": "Nóminas",
+      "profile": "Perfil",
+      "schedule": "Turnos",
+      "vacation": "Vacaciones"
+    },
+    "fields": {
+      "address": "Dirección",
+      "businessName": "Razón social",
+      "email": "Email",
+      "name": "Nombre",
+      "nif": "NIF"
+    }
   }
 }
