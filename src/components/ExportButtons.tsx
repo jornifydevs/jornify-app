@@ -39,15 +39,10 @@ export default function ExportButtons({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          className="gap-1.5"
-        >
-          <Download className="w-4 h-4" />
+        <Button variant="outline" disabled={disabled}>
+          <Download />
           {t("trigger")}
-          <ChevronDown className="w-3.5 h-3.5" />
+          <ChevronDown className="!size-4 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

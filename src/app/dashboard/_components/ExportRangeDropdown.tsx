@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { Download, ChevronDown, FileDown, Table2, Loader2 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/infrastructure/supabase/client";
 import { SupabaseWorkdayRepository } from "@/infrastructure/supabase/repositories/supabase-workday.repository";
 import { SupabaseTimeRecordRepository } from "@/infrastructure/supabase/repositories/supabase-time-record.repository";
@@ -45,6 +49,7 @@ export default function ExportRangeDropdown({
 }: ExportRangeDropdownProps) {
   const t = useTranslations("common.export");
   const locale = useLocale();
+  const fieldId = useId();
 
   const [open, setOpen] = useState(false);
   const [startDate, setStartDate] = useState(defaultStart);
@@ -170,27 +175,29 @@ export default function ExportRangeDropdown({
     <div ref={containerRef} className="relative">
       <Button
         variant="outline"
-        size="sm"
         onClick={() => setOpen((prev) => !prev)}
-        className="gap-1.5"
+        aria-expanded={open}
+        className="px-3.5 sm:px-5"
       >
-        <Download className="w-4 h-4" />
-        {t("trigger")}
-        <ChevronDown className="w-3.5 h-3.5" />
+        <Download />
+        <span className="sr-only sm:not-sr-only">{t("trigger")}</span>
+        <ChevronDown
+          className={cn(
+            "transition-transform motion-reduce:transition-none",
+            open && "rotate-180"
+          )}
+        />
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 w-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-3 space-y-3">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-            {t("rangeTitle")}
-          </p>
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] space-y-4 rounded-xl border bg-popover p-4 text-popover-foreground shadow-float">
+          <p className="text-sm font-semibold">{t("rangeTitle")}</p>
 
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-600 dark:text-slate-400">
-                {t("from")}
-              </label>
-              <input
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor={`${fieldId}-from`}>{t("from")}</Label>
+              <Input
+                id={`${fieldId}-from`}
                 type="date"
                 value={startDate}
                 max={endDate}
@@ -198,14 +205,12 @@ export default function ExportRangeDropdown({
                   setStartDate(e.target.value);
                   setStatusMsg(null);
                 }}
-                className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 px-2 py-1.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs text-slate-600 dark:text-slate-400">
-                {t("to")}
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor={`${fieldId}-to`}>{t("to")}</Label>
+              <Input
+                id={`${fieldId}-to`}
                 type="date"
                 value={endDate}
                 min={startDate}
@@ -213,38 +218,31 @@ export default function ExportRangeDropdown({
                   setEndDate(e.target.value);
                   setStatusMsg(null);
                 }}
-                className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 px-2 py-1.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          {statusMsg && <p className="text-xs text-amber-500">{statusMsg}</p>}
+          {statusMsg && <Alert variant="warning">{statusMsg}</Alert>}
 
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="outline"
               onClick={() => fetchAndExport("pdf")}
               disabled={loading || !startDate || !endDate}
-              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1"
             >
-              {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <FileDown className="w-3.5 h-3.5" />
-              )}
+              {loading ? <Loader2 className="animate-spin" /> : <FileDown />}
               {t("pdf")}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => fetchAndExport("csv")}
               disabled={loading || !startDate || !endDate}
-              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1"
             >
-              {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Table2 className="w-3.5 h-3.5" />
-              )}
+              {loading ? <Loader2 className="animate-spin" /> : <Table2 />}
               {t("csv")}
-            </button>
+            </Button>
           </div>
         </div>
       )}

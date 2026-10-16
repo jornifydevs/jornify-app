@@ -1,8 +1,12 @@
 "use client";
 
-import { Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useWorkHistory } from "../_hooks/useWorkHistory";
 import { useTranslations } from "next-intl";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { cn } from "@/lib/utils";
 import ExportRangeDropdown from "./ExportRangeDropdown";
 import type { RegistroJornadaMeta } from "@/lib/export-utils";
 
@@ -36,59 +40,13 @@ export default function WorkHistory({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
+      {error && <Alert variant="error">{error}</Alert>}
 
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <h3 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-blue-400" />
-            {t("title")}
-          </h3>
-          <div className="flex gap-2 flex-wrap">
-            {(["today", "week", "month"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === f
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
-                }`}
-              >
-                {t(f)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative flex items-center justify-center gap-4">
-          <button
-            onClick={goToPrevious}
-            className="p-2 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600 transition-colors"
-            aria-label={t("previousPeriod")}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 min-w-[180px] text-center capitalize">
-            {getPeriodLabel()}
-          </span>
-          <button
-            onClick={goToNext}
-            disabled={!canGoNext}
-            className={`p-2 rounded-lg transition-colors ${
-              canGoNext
-                ? "bg-slate-200 text-slate-600 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
-                : "bg-slate-100 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600"
-            }`}
-            aria-label={t("nextPeriod")}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-          <div className="absolute right-0">
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
+          {/* The export panel opens anchored to the right edge */}
+          <div className="ml-auto">
             <ExportRangeDropdown
               workerId={workerId}
               defaultStart={getPeriodDates().start}
@@ -113,97 +71,171 @@ export default function WorkHistory({
             />
           </div>
         </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            role="group"
+            aria-label={t("period")}
+            className="flex gap-1 rounded-full bg-secondary p-1 sm:inline-flex"
+          >
+            {(["today", "week", "month"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={cn(
+                  "min-h-11 flex-1 rounded-full px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-9 sm:flex-none",
+                  filter === f
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {t(f)}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="shrink-0 rounded-full"
+              onClick={goToPrevious}
+              aria-label={t("previousPeriod")}
+            >
+              <ChevronLeft />
+            </Button>
+            <p
+              aria-live="polite"
+              className="min-w-0 flex-1 text-center text-sm font-medium tabular-nums first-letter:uppercase sm:min-w-44"
+            >
+              {getPeriodLabel()}
+            </p>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="shrink-0 rounded-full"
+              onClick={goToNext}
+              disabled={!canGoNext}
+              aria-label={t("nextPeriod")}
+            >
+              <ChevronRight />
+            </Button>
+          </div>
+        </div>
       </div>
 
       {!loading && records.length > 0 && (
-        <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-500 dark:text-slate-400">
-              {t("totalHours")}
-            </span>
-            <span className="text-2xl font-bold text-blue-400">
-              {calculateTotalHours()}
-            </span>
-          </div>
+        <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-5">
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span aria-hidden="true" className="size-2 rounded-full bg-live" />
+            {t("totalHours")}
+          </p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
+            {calculateTotalHours()}
+          </p>
         </div>
       )}
 
-      <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         {loading ? (
-          <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+          <div className="flex items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             {tc("loading")}
           </div>
         ) : records.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 dark:text-slate-400">
-            {t("noRecords")}
+          <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
+            <Clock
+              className="size-10 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <p className="font-medium">{t("noRecords")}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-100 dark:bg-slate-900/50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {t("date")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {t("entry")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {t("exit")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {t("break")}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {t("total")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                {records.map((record) => (
-                  <tr
-                    key={record.id}
-                    className="hover:bg-slate-100 dark:hover:bg-slate-700/30 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm text-slate-900 dark:text-white">
-                          {formatDate(record.workday.day)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-green-500" />
-                        <span className="text-sm text-slate-700 dark:text-slate-300">
-                          {record.startHour && formatTime(record.startHour)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-red-500" />
-                        <span className="text-sm text-slate-700 dark:text-slate-300">
-                          {record.endHour && formatTime(record.endHour)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-amber-400">
+          <>
+            {/* Column headers from sm up; on phones each value carries its own label */}
+            <div
+              aria-hidden="true"
+              className="hidden grid-cols-5 gap-4 border-b bg-secondary px-5 py-2.5 text-xs font-medium text-muted-foreground sm:grid"
+            >
+              <span>{t("date")}</span>
+              <span>{t("entry")}</span>
+              <span>{t("exit")}</span>
+              <span>{t("break")}</span>
+              <span>{t("total")}</span>
+            </div>
+            <ul className="divide-y">
+              {records.map((record) => (
+                <li
+                  key={record.id}
+                  className="px-4 py-3 transition-colors hover:bg-accent sm:grid sm:grid-cols-5 sm:items-center sm:gap-4 sm:px-5"
+                >
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="text-sm font-medium first-letter:uppercase">
+                      {formatDate(record.workday.day)}
+                    </p>
+                    {record.startHour && !record.endHour && (
+                      <StatusBadge tone="live" size="sm">
+                        {t("inProgress")}
+                      </StatusBadge>
+                    )}
+                  </div>
+                  <dl className="mt-2 grid grid-cols-2 gap-2 min-[360px]:grid-cols-4 sm:col-span-4 sm:mt-0 sm:gap-4">
+                    <div>
+                      <dt className="text-xs text-muted-foreground sm:sr-only">
+                        {t("entry")}
+                      </dt>
+                      <dd
+                        className={cn(
+                          "text-sm tabular-nums",
+                          !record.startHour && "text-muted-foreground"
+                        )}
+                      >
+                        {record.startHour ? formatTime(record.startHour) : "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground sm:sr-only">
+                        {t("exit")}
+                      </dt>
+                      <dd
+                        className={cn(
+                          "text-sm tabular-nums",
+                          !record.endHour && "text-muted-foreground"
+                        )}
+                      >
+                        {record.endHour ? formatTime(record.endHour) : "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground sm:sr-only">
+                        {t("break")}
+                      </dt>
+                      <dd
+                        className={cn(
+                          "text-sm tabular-nums",
+                          record.breakTotalHour
+                            ? "text-pause-text"
+                            : "text-muted-foreground"
+                        )}
+                      >
                         {record.breakTotalHour ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-semibold text-blue-400">
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground sm:sr-only">
+                        {t("total")}
+                      </dt>
+                      <dd className="text-sm font-semibold tabular-nums">
                         {record.totalHour || "00:00:00"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </div>

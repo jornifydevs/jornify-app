@@ -1,40 +1,22 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Sun, Moon } from "lucide-react";
-import { setTheme } from "@/app/actions/theme";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
-interface ThemeSwitcherProps {
-  theme: "dark" | "light";
-}
-
-export function ThemeSwitcher({ theme }: ThemeSwitcherProps) {
-  const t = useTranslations("dashboard.footer");
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  function handleToggle() {
-    const next = theme === "dark" ? "light" : "dark";
-    startTransition(async () => {
-      await setTheme(next);
-      router.refresh();
-    });
-  }
+export function ThemeSwitcher() {
+  const tc = useTranslations("common");
+  const { toggleTheme, isPending } = useThemeToggle();
 
   return (
     <button
-      onClick={handleToggle}
+      onClick={toggleTheme}
       disabled={isPending}
-      aria-label={theme === "dark" ? t("switchToLight") : t("switchToDark")}
-      className="flex items-center justify-center w-11 h-11 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg transition-colors disabled:opacity-50"
+      aria-label={tc("toggleTheme")}
+      className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
     >
-      {theme === "dark" ? (
-        <Sun className="w-4 h-4" />
-      ) : (
-        <Moon className="w-4 h-4" />
-      )}
+      <Sun className="hidden size-[18px] dark:block" aria-hidden="true" />
+      <Moon className="size-[18px] dark:hidden" aria-hidden="true" />
     </button>
   );
 }

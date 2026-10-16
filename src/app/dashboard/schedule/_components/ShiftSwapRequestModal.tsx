@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, ArrowLeftRight, Send } from "lucide-react";
+import { useState, useEffect, useId } from "react";
+import { X, Send } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 import type { Worker, Workday } from "@/core/domain/entities";
 import type { RequestShiftSwapInput } from "@/core/application/dtos/shifts.dto";
 
@@ -64,6 +68,7 @@ function WorkdayPicker({
   noWorkdaysText,
 }: WorkdayPickerProps) {
   const locale = useLocale();
+  const t = useTranslations("dashboard.schedule.swaps");
   const byMonth = groupByMonth(workdays);
   const monthKeys = Array.from(byMonth.keys());
 
@@ -90,42 +95,38 @@ function WorkdayPicker({
 
   if (workdays.length === 0) {
     return (
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-          {label}
-        </label>
-        <p className="text-sm text-slate-400 dark:text-slate-500 italic px-1">
-          {noWorkdaysText}
-        </p>
+      <div className="space-y-2">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-sm text-muted-foreground">{noWorkdaysText}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-        {label}
-      </label>
-      <div className="flex gap-2">
+    <fieldset className="space-y-2">
+      <legend className="text-sm font-medium">{label}</legend>
+      <div className="flex flex-col gap-2 sm:flex-row">
         {/* Month select */}
-        <select
+        <NativeSelect
+          aria-label={t("month")}
           value={activeMonth}
           onChange={(e) => handleMonthChange(e.target.value)}
-          className="w-2/5 text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white capitalize"
+          className="capitalize sm:w-2/5"
         >
           {monthKeys.map((key) => (
             <option key={key} value={key}>
               {formatMonthKey(key, locale)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
 
         {/* Day select */}
-        <select
+        <NativeSelect
+          aria-label={t("day")}
           value={selectedId}
           onChange={(e) => onSelect(e.target.value)}
           required
-          className="flex-1 text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+          className="sm:flex-1"
         >
           <option value="">{placeholder}</option>
           {daysInMonth.map((w) => (
@@ -133,9 +134,9 @@ function WorkdayPicker({
               {formatDay(w, locale)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -152,6 +153,9 @@ export default function ShiftSwapRequestModal({
 }: ShiftSwapRequestModalProps) {
   const t = useTranslations("dashboard.schedule.swaps");
   const tc = useTranslations("common");
+  const titleId = useId();
+  const coworkerId = useId();
+  const noteId = useId();
 
   const [myWorkdayId, setMyWorkdayId] = useState("");
   const [targetWorkerId, setTargetWorkerId] = useState("");
@@ -187,38 +191,39 @@ export default function ShiftSwapRequestModal({
   const isValid = Boolean(myWorkdayId && targetWorkerId && targetWorkdayId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border bg-card shadow-float"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-2">
-            <ArrowLeftRight className="w-4 h-4 text-orange-500" />
-            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-              {t("request")}
-            </h2>
-          </div>
-          <button
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b px-6 py-4">
+          <h2 id={titleId} className="text-lg font-semibold tracking-tight">
+            {t("request")}
+          </h2>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
             aria-label={tc("cancel")}
+            className="-mr-2 rounded-full"
           >
-            <X className="w-4 h-4" />
-          </button>
+            <X />
+          </Button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit}>
-          <div className="px-6 py-5 space-y-4">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="space-y-5 overflow-y-auto px-6 py-5">
             {loadingData ? (
               <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-10 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"
+                    className="h-12 animate-pulse rounded-lg bg-track motion-reduce:animate-none"
                   />
                 ))}
               </div>
@@ -235,15 +240,13 @@ export default function ShiftSwapRequestModal({
                 />
 
                 {/* Coworker */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                    {t("selectWorker")}
-                  </label>
-                  <select
+                <div className="space-y-2">
+                  <Label htmlFor={coworkerId}>{t("selectWorker")}</Label>
+                  <NativeSelect
+                    id={coworkerId}
                     value={targetWorkerId}
                     onChange={(e) => handleCoworkerChange(e.target.value)}
                     required
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                   >
                     <option value="">{t("selectWorker")}</option>
                     {coworkers.map((w) => (
@@ -251,13 +254,13 @@ export default function ShiftSwapRequestModal({
                         {w.job} — {w.dni}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 {/* Target workday */}
                 {targetWorkerId &&
                   (loadingTargetWorkdays ? (
-                    <div className="h-10 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />
+                    <div className="h-12 animate-pulse rounded-lg bg-track motion-reduce:animate-none" />
                   ) : (
                     <WorkdayPicker
                       label={t("selectTheirDay")}
@@ -270,16 +273,15 @@ export default function ShiftSwapRequestModal({
                   ))}
 
                 {/* Note */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                    {t("requesterNote")}
-                  </label>
-                  <textarea
+                <div className="space-y-2">
+                  <Label htmlFor={noteId}>{t("requesterNote")}</Label>
+                  <Textarea
+                    id={noteId}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder={t("requesterNotePlaceholder")}
                     rows={2}
-                    className="w-full text-sm px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 resize-none"
+                    className="resize-none"
                   />
                 </div>
               </>
@@ -287,22 +289,14 @@ export default function ShiftSwapRequestModal({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition-colors"
-            >
+          <div className="flex shrink-0 flex-col-reverse gap-2 border-t px-6 py-4 sm:flex-row sm:justify-end">
+            <Button type="button" variant="ghost" onClick={onClose}>
               {tc("cancel")}
-            </button>
-            <button
-              type="submit"
-              disabled={!isValid || submitting}
-              className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg bg-orange-500 hover:bg-orange-600 text-white transition-colors disabled:opacity-60 font-medium"
-            >
-              <Send className="w-3.5 h-3.5" />
+            </Button>
+            <Button type="submit" disabled={!isValid || submitting}>
+              <Send />
               {submitting ? t("submitting") : t("submitRequest")}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

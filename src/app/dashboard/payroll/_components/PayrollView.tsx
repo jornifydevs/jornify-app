@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { ArrowLeft, FileText, Eye, Download, Search, X } from "lucide-react";
+import { FileText, Eye, Download, Search, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,15 +12,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import UserMenu from "../../_components/UserMenu";
-import type { Document, CenterFeature } from "@/core/domain/entities";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
+import type { Document } from "@/core/domain/entities";
 import { useTranslations, useLocale } from "next-intl";
 
 interface PayrollViewProps {
   documents: Document[];
-  userEmail: string;
-  enabledFeatures: CenterFeature[];
 }
 
 function getYear(dateString: string | undefined): number | null {
@@ -29,11 +27,7 @@ function getYear(dateString: string | undefined): number | null {
   return new Date(dateString).getFullYear();
 }
 
-export default function PayrollView({
-  documents,
-  userEmail,
-  enabledFeatures,
-}: PayrollViewProps) {
+export default function PayrollView({ documents }: PayrollViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const t = useTranslations("dashboard.payroll");
@@ -101,61 +95,40 @@ export default function PayrollView({
   const hasActiveFilters = searchQuery !== "" || selectedYear !== "all";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {t("title")}
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {userEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-          <UserMenu enabledFeatures={enabledFeatures} />
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-4xl px-6 pt-6 lg:pt-8">
+        <PageHeader title={t("title")} />
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
-        <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-              <FileText className="w-5 h-5" />
+            <h2 className="text-lg font-semibold tracking-tight">
               {t("documents")}
-            </CardTitle>
+            </h2>
           </CardHeader>
           <CardContent>
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 <Input
                   type="text"
                   placeholder={t("searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
+                  className="pl-11"
                 />
               </div>
-              <select
+              <NativeSelect
+                aria-label={t("year")}
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="h-10 px-3 rounded-md bg-white border border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="sm:w-44"
               >
                 <option value="all">{t("allYears")}</option>
                 {availableYears.map((year) => (
@@ -163,79 +136,85 @@ export default function PayrollView({
                     {year}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
               {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-600 h-10"
-                >
-                  <X className="w-4 h-4 mr-1" />
+                <Button variant="ghost" onClick={clearFilters}>
+                  <X />
                   {t("clearFilters")}
                 </Button>
               )}
             </div>
 
             {documents.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{t("noDocuments")}</p>
+              <div className="flex flex-col items-center gap-3 py-12 text-center">
+                <FileText
+                  className="size-10 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <p className="font-medium">{t("noDocuments")}</p>
               </div>
             ) : filteredDocuments.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{t("noFiltered")}</p>
+              <div className="flex flex-col items-center gap-3 py-12 text-center">
+                <Search
+                  className="size-10 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <p className="font-medium">{t("noFiltered")}</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div>
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-200 dark:border-slate-700 hover:bg-transparent">
-                      <TableHead className="text-slate-700 dark:text-slate-300">
-                        {t("colName")}
-                      </TableHead>
-                      <TableHead className="text-slate-700 dark:text-slate-300">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead>{t("colName")}</TableHead>
+                      <TableHead className="hidden sm:table-cell">
                         {t("colUploadDate")}
                       </TableHead>
-                      <TableHead className="text-slate-700 dark:text-slate-300 text-right">
+                      <TableHead className="text-right">
                         {t("colActions")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredDocuments.map((doc) => (
-                      <TableRow
-                        key={doc.id}
-                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                      >
-                        <TableCell className="text-slate-900 dark:text-white font-medium">
-                          {doc.name}
+                      <TableRow key={doc.id}>
+                        <TableCell>
+                          <span className="font-medium [overflow-wrap:anywhere]">
+                            {doc.name}
+                          </span>
+                          {/* On phones the upload date folds under the name */}
+                          <span className="mt-0.5 block text-muted-foreground tabular-nums sm:hidden">
+                            {formatDate(doc.timestamp)}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-slate-700 dark:text-slate-300">
+                        <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
                           {formatDate(doc.timestamp)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1 sm:gap-2">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
                               onClick={() => handleView(doc.document)}
-                              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-600"
+                              className="sm:w-auto sm:px-3.5"
                             >
-                              <Eye className="w-4 h-4 mr-1" />
-                              {t("view")}
+                              <Eye />
+                              <span className="sr-only sm:not-sr-only">
+                                {t("view")}
+                              </span>
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
                               onClick={() =>
                                 handleDownload(doc.document, doc.name)
                               }
-                              className="text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-600"
+                              className="sm:w-auto sm:px-3.5"
                             >
-                              <Download className="w-4 h-4 mr-1" />
-                              {t("download")}
+                              <Download />
+                              <span className="sr-only sm:not-sr-only">
+                                {t("download")}
+                              </span>
                             </Button>
                           </div>
                         </TableCell>
@@ -243,7 +222,7 @@ export default function PayrollView({
                     ))}
                   </TableBody>
                 </Table>
-                <p className="text-sm text-slate-500 mt-4">
+                <p className="mt-4 text-sm text-muted-foreground">
                   {t("showing", {
                     filtered: filteredDocuments.length,
                     total: documents.length,
@@ -253,7 +232,7 @@ export default function PayrollView({
             )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

@@ -40,8 +40,6 @@ export default async function CalendarPage() {
       countryCode={center?.nationality ?? "ES"}
       subdivisionCode={center?.location ?? undefined}
       centerId={worker.centerId}
-      userEmail={userData.email}
-      enabledFeatures={center?.enabledFeatures ?? []}
     />
   );
 }

@@ -1,30 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, CalendarDays, Plus, Loader2, Check, X } from "lucide-react";
+import { useState, type ComponentProps } from "react";
+import { CalendarDays, Plus, Loader2, Check, X } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import UserMenu from "../../_components/UserMenu";
+import { NativeSelect } from "@/components/ui/native-select";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/PageHeader";
 import { useAvailability } from "../_hooks/useAvailability";
-import type { CenterFeature } from "@/core/domain/entities";
 import { useTranslations } from "next-intl";
 
 interface AvailabilityViewProps {
   workerId: string;
   centerId: string;
-  userEmail: string;
-  enabledFeatures: CenterFeature[];
   allowedDayTypes: string[];
 }
+
+type StatusTone = ComponentProps<typeof StatusBadge>["tone"];
+
+// Categorical day types: holiday → brand, time off → pause, sick leave → alert.
+const DAY_TYPE_TONES: Record<string, StatusTone> = {
+  holiday: "brand",
+  vacation: "pause",
+  sick_leave: "alert",
+};
 
 export default function AvailabilityView({
   workerId,
   centerId,
-  userEmail,
-  enabledFeatures,
   allowedDayTypes,
 }: AvailabilityViewProps) {
   const {
@@ -45,7 +51,6 @@ export default function AvailabilityView({
     requestDayOff,
     formatDate,
     getDayTypeLabel,
-    getDayTypeColor,
   } = useAvailability({ workerId, centerId });
 
   const t = useTranslations("dashboard.availability");
@@ -66,57 +71,35 @@ export default function AvailabilityView({
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-600 rounded-lg">
-                <CalendarDays className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {t("title")}
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {userEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-          <UserMenu enabledFeatures={enabledFeatures} />
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-4xl px-6 pt-6 lg:pt-8">
+        <PageHeader title={t("title")} />
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         {/* Title + Request button */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-slate-900 dark:text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold tracking-tight">
             {t("myDaysOff")}
           </h2>
           <Button
+            variant={showRequestForm ? "outline" : "default"}
             onClick={() => {
               setShowRequestForm(!showRequestForm);
               setRequestSuccess(false);
             }}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            aria-expanded={showRequestForm}
+            className="w-full sm:w-auto"
           >
             {showRequestForm ? (
               <>
-                <X className="w-4 h-4 mr-1" />
+                <X />
                 {t("cancel")}
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 mr-1" />
+                <Plus />
                 {t("requestDayOff")}
               </>
             )}
@@ -125,31 +108,25 @@ export default function AvailabilityView({
 
         {/* Success message */}
         {requestSuccess && !showRequestForm && (
-          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm flex items-center gap-2">
-            <Check className="w-4 h-4" />
+          <Alert variant="success">
+            <Check />
             {t("requestSuccess")}
-          </div>
+          </Alert>
         )}
 
         {/* Request Form */}
         {showRequestForm && (
-          <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white text-base">
-                <Plus className="w-5 h-5" />
+              <h3 className="text-lg font-semibold tracking-tight">
                 {t("requestFormTitle")}
-              </CardTitle>
+              </h3>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmitRequest} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <form onSubmit={handleSubmitRequest} className="space-y-5">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="requestStartDay"
-                      className="text-slate-700 dark:text-slate-300"
-                    >
-                      {t("startDate")}
-                    </Label>
+                    <Label htmlFor="requestStartDay">{t("startDate")}</Label>
                     <Input
                       id="requestStartDay"
                       type="date"
@@ -161,17 +138,11 @@ export default function AvailabilityView({
                         }
                       }}
                       min={new Date().toISOString().split("T")[0]}
-                      className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="requestEndDay"
-                      className="text-slate-700 dark:text-slate-300"
-                    >
-                      {t("endDate")}
-                    </Label>
+                    <Label htmlFor="requestEndDay">{t("endDate")}</Label>
                     <Input
                       id="requestEndDay"
                       type="date"
@@ -181,22 +152,15 @@ export default function AvailabilityView({
                         requestStartDay ||
                         new Date().toISOString().split("T")[0]
                       }
-                      className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="requestType"
-                      className="text-slate-700 dark:text-slate-300"
-                    >
-                      {t("type")}
-                    </Label>
-                    <select
+                    <Label htmlFor="requestType">{t("type")}</Label>
+                    <NativeSelect
                       id="requestType"
                       value={requestType}
                       onChange={(e) => setRequestType(e.target.value)}
-                      className="w-full h-10 px-3 rounded-md bg-white border border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       required
                     >
                       <option value="">{t("selectType")}</option>
@@ -205,15 +169,11 @@ export default function AvailabilityView({
                           {getDayTypeLabel(type)}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </div>
                 </div>
 
-                {requestError && (
-                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {requestError}
-                  </div>
-                )}
+                {requestError && <Alert variant="error">{requestError}</Alert>}
 
                 <Button
                   type="submit"
@@ -223,11 +183,11 @@ export default function AvailabilityView({
                     !requestEndDay ||
                     !requestType
                   }
-                  className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="w-full sm:w-auto"
                 >
                   {isRequesting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                      <Loader2 className="animate-spin" />
                       {t("requesting")}
                     </>
                   ) : (
@@ -240,24 +200,24 @@ export default function AvailabilityView({
         )}
 
         {/* Filters */}
-        <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <select
-                  value={typeFilter ?? ""}
-                  onChange={(e) => setTypeFilter(e.target.value || null)}
-                  className="w-full h-10 px-3 rounded-md bg-white border border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="">{t("allTypes")}</option>
-                  {availableTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {getDayTypeLabel(type)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <select
+        <Card>
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <NativeSelect
+                aria-label={t("type")}
+                value={typeFilter ?? ""}
+                onChange={(e) => setTypeFilter(e.target.value || null)}
+                className="sm:flex-1"
+              >
+                <option value="">{t("allTypes")}</option>
+                {availableTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {getDayTypeLabel(type)}
+                  </option>
+                ))}
+              </NativeSelect>
+              <NativeSelect
+                aria-label={t("year")}
                 value={yearFilter ?? "all"}
                 onChange={(e) =>
                   setYearFilter(
@@ -266,7 +226,7 @@ export default function AvailabilityView({
                       : Number(e.target.value)
                   )
                 }
-                className="h-10 px-3 rounded-md bg-white border border-slate-300 text-slate-900 dark:bg-slate-700 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="sm:w-44"
               >
                 <option value="all">{t("allYears")}</option>
                 {yearOptions.map((y) => (
@@ -274,61 +234,62 @@ export default function AvailabilityView({
                     {y}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           </CardContent>
         </Card>
 
         {/* Error display */}
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
+        {error && <Alert variant="error">{error}</Alert>}
 
         {/* Records list */}
-        <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-          <CardContent className="pt-6">
-            {loading ? (
-              <div className="flex items-center justify-center p-8 text-slate-400 gap-2">
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {tc("loading")}
-              </div>
-            ) : records.length === 0 ? (
-              <div className="text-center py-12 text-slate-400">
-                <CalendarDays className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>{t("noRecords")}</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
+        <Card className="overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
+              <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+              {tc("loading")}
+            </div>
+          ) : records.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
+              <CalendarDays
+                className="size-10 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <p className="font-medium">{t("noRecords")}</p>
+            </div>
+          ) : (
+            <>
+              <ul className="divide-y">
                 {records.map((record) => (
-                  <div
+                  <li
                     key={record.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 dark:bg-slate-900/50 dark:border-slate-700 dark:hover:bg-slate-700/30 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent sm:px-6"
                   >
-                    <div className="flex items-center gap-3">
-                      <CalendarDays className="w-5 h-5 text-slate-400" />
-                      <span className="text-sm text-slate-900 dark:text-white font-medium">
-                        {formatDate(record.day)}
-                      </span>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium border ${getDayTypeColor(record.typeDay)}`}
+                    <CalendarDays
+                      className="size-5 shrink-0 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0 flex-1 text-sm font-medium tabular-nums first-letter:uppercase">
+                      {formatDate(record.day)}
+                    </span>
+                    <StatusBadge
+                      tone={DAY_TYPE_TONES[record.typeDay] ?? "neutral"}
+                      size="sm"
                     >
                       {getDayTypeLabel(record.typeDay)}
-                    </span>
-                  </div>
+                    </StatusBadge>
+                  </li>
                 ))}
-                <p className="text-sm text-slate-500 mt-4">
-                  {records.length !== 1
-                    ? t("showingPlural", { count: records.length })
-                    : t("showing", { count: records.length })}
-                </p>
-              </div>
-            )}
-          </CardContent>
+              </ul>
+              <p className="border-t px-4 py-3 text-sm text-muted-foreground sm:px-6">
+                {records.length !== 1
+                  ? t("showingPlural", { count: records.length })
+                  : t("showing", { count: records.length })}
+              </p>
+            </>
+          )}
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

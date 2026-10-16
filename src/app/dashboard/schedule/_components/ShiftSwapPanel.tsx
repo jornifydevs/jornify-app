@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowLeftRight, Plus } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { ShiftSwapRequest } from "@/core/domain/entities";
 import type { useShiftSwap } from "../_hooks/useShiftSwap";
 import ShiftSwapRequestModal from "./ShiftSwapRequestModal";
@@ -12,12 +15,15 @@ interface ShiftSwapPanelProps {
   swapHook: ReturnType<typeof useShiftSwap>;
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400",
-  awaiting_admin: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  approved: "bg-green-500/10 text-green-600 dark:text-green-400",
-  rejected: "bg-red-500/10 text-red-600 dark:text-red-400",
-  cancelled: "bg-slate-500/10 text-slate-500 dark:text-slate-400",
+type StatusTone = ComponentProps<typeof StatusBadge>["tone"];
+
+// Waiting on someone → brand, approved → live, rejected → alert, cancelled → neutral.
+const STATUS_TONES: Record<string, StatusTone> = {
+  pending: "brand",
+  awaiting_admin: "brand",
+  approved: "live",
+  rejected: "alert",
+  cancelled: "neutral",
 };
 
 function SwapCard({
@@ -38,65 +44,69 @@ function SwapCard({
   const isTarget = swap.targetId === workerId;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-4 space-y-3">
+    <li className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-          <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="rounded bg-secondary px-2 py-0.5 font-mono text-xs">
             {swap.requesterWorkdayId.slice(0, 8)}
           </span>
-          <ArrowLeftRight className="w-3 h-3 text-slate-400" />
-          <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
+          <ArrowLeftRight
+            className="size-3.5 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <span className="rounded bg-secondary px-2 py-0.5 font-mono text-xs">
             {swap.targetWorkdayId.slice(0, 8)}
           </span>
         </div>
-        <span
-          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-            STATUS_STYLES[swap.status] ?? STATUS_STYLES.pending
-          }`}
+        <StatusBadge
+          tone={STATUS_TONES[swap.status] ?? STATUS_TONES.pending}
+          size="sm"
         >
           {t(`status.${swap.status}` as never)}
-        </span>
+        </StatusBadge>
       </div>
 
       {swap.requesterNote && (
-        <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+        <p className="text-sm italic text-muted-foreground">
           &ldquo;{swap.requesterNote}&rdquo;
         </p>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 empty:hidden">
         {/* Requester puede cancelar si está pending */}
         {isRequester && swap.status === "pending" && (
-          <button
+          <Button
+            variant="outline"
             onClick={() => onCancel(swap.id)}
             disabled={submitting}
-            className="text-xs px-3 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors disabled:opacity-50"
+            className="flex-1 sm:flex-none"
           >
             {submitting ? t("cancelling") : t("cancel")}
-          </button>
+          </Button>
         )}
 
         {/* Target puede aceptar/rechazar si está pending */}
         {isTarget && swap.status === "pending" && (
           <>
-            <button
+            <Button
               onClick={() => onRespond(swap.id, true)}
               disabled={submitting}
-              className="text-xs px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 sm:flex-none"
             >
               {t("accept")}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => onRespond(swap.id, false)}
               disabled={submitting}
-              className="text-xs px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 sm:flex-none"
             >
               {t("reject")}
-            </button>
+            </Button>
           </>
         )}
       </div>
-    </div>
+    </li>
   );
 }
 
@@ -131,18 +141,16 @@ export default function ShiftSwapPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-          <ArrowLeftRight className="w-4 h-4 text-orange-500" />
-          {t("title")}
-        </h2>
-        <button
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
+        <Button
+          variant="outline"
           onClick={handleOpenModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-lg transition-colors"
+          className="w-full sm:w-auto"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus />
           {t("request")}
-        </button>
+        </Button>
       </div>
 
       {showModal && (
@@ -159,25 +167,17 @@ export default function ShiftSwapPanel({
         />
       )}
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-600 dark:text-red-400 text-sm">
-          {error}
-        </div>
-      )}
-      {successMessage && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 text-green-600 dark:text-green-400 text-sm">
-          {successMessage}
-        </div>
-      )}
+      {error && <Alert variant="error">{error}</Alert>}
+      {successMessage && <Alert variant="success">{successMessage}</Alert>}
 
       {loading ? (
-        <div className="h-12 bg-slate-200 dark:bg-slate-700/50 rounded-xl animate-pulse" />
+        <div className="h-12 animate-pulse rounded-xl bg-track motion-reduce:animate-none" />
       ) : swaps.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+        <p className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-muted-foreground">
           {t("noSwaps")}
         </p>
       ) : (
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {swaps.map((swap) => (
             <SwapCard
               key={swap.id}
@@ -188,7 +188,7 @@ export default function ShiftSwapPanel({
               submitting={submitting}
             />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

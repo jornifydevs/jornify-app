@@ -20,14 +20,6 @@ const DAY_TYPE_LABELS: Record<string, string> = {
   sick_leave: "Baja médica",
 };
 
-const DAY_TYPE_COLORS: Record<string, string> = {
-  vacation: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  holiday: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  sick_leave: "bg-red-500/20 text-red-400 border-red-500/30",
-};
-
-const DEFAULT_COLOR = "bg-violet-500/20 text-violet-400 border-violet-500/30";
-
 export function useAvailability({ workerId, centerId }: UseAvailabilityProps) {
   const [allRecords, setAllRecords] = useState<Workday[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,10 +114,6 @@ export function useAvailability({ workerId, centerId }: UseAvailabilityProps) {
     return DAY_TYPE_LABELS[typeDay] ?? typeDay.replace(/_/g, " ");
   };
 
-  const getDayTypeColor = (typeDay: string): string => {
-    return DAY_TYPE_COLORS[typeDay] ?? DEFAULT_COLOR;
-  };
-
   return {
     records: filteredRecords,
     loading,
@@ -144,6 +132,5 @@ export function useAvailability({ workerId, centerId }: UseAvailabilityProps) {
     requestDayOff,
     formatDate,
     getDayTypeLabel,
-    getDayTypeColor,
   };
 }

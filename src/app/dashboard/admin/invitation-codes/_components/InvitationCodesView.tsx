@@ -1,26 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  ArrowLeft,
-  Key,
-  Plus,
-  Copy,
-  Check,
-  Clock,
-  CheckCircle,
-  LogOut,
-} from "lucide-react";
+import { Key, Plus, Copy, Check } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { InvitationCode } from "@/core/domain/entities";
 
 interface InvitationCodesViewProps {
   initialCodes: InvitationCode[];
 }
 
-function StatusBadge({
+function CodeStatusBadge({
   status,
   expiresAt,
 }: {
@@ -32,27 +33,24 @@ function StatusBadge({
 
   if (status === "used") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300">
-        <CheckCircle className="w-3 h-3" />
+      <StatusBadge tone="neutral" size="sm">
         {t("statusUsed")}
-      </span>
+      </StatusBadge>
     );
   }
 
   if (expired) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300">
-        <Clock className="w-3 h-3" />
+      <StatusBadge tone="alert" size="sm">
         {t("statusExpired")}
-      </span>
+      </StatusBadge>
     );
   }
 
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300">
-      <Clock className="w-3 h-3" />
+    <StatusBadge tone="live" size="sm">
       {t("statusPending")}
-    </span>
+    </StatusBadge>
   );
 }
 
@@ -67,17 +65,17 @@ function CopyButton({ code }: { code: string }) {
   };
 
   return (
-    <button
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
       onClick={handleCopy}
-      className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-500 hover:text-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300 dark:hover:text-white transition-colors"
+      aria-label={t("copyCode")}
       title={t("copyCode")}
+      className="shrink-0 md:size-9"
     >
-      {copied ? (
-        <Check className="w-4 h-4 text-green-400" />
-      ) : (
-        <Copy className="w-4 h-4" />
-      )}
-    </button>
+      {copied ? <Check className="text-live-text" /> : <Copy />}
+    </Button>
   );
 }
 
@@ -88,7 +86,6 @@ export default function InvitationCodesView({
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const t = useTranslations("dashboard.admin.invitationCodes");
-  const tc = useTranslations("common");
   const locale = useLocale();
 
   const handleGenerate = async () => {
@@ -125,144 +122,103 @@ export default function InvitationCodesView({
   ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-3 flex-1">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Key className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {t("title")}
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {pending} código{pending !== 1 ? "s" : ""} activo
-                {pending !== 1 ? "s" : ""}
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">
+    <div>
+      <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-8">
+        <PageHeader
+          title={t("title")}
+          description={t("activeCount", { count: pending })}
+          actions={
+            <Button onClick={handleGenerate} disabled={generating}>
+              <Plus />
               {generating ? t("generating") : t("generateCode")}
-            </span>
-          </Button>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{tc("signOut")}</span>
-            </button>
-          </form>
-        </div>
-      </header>
+            </Button>
+          }
+        />
+      </div>
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-4">
-        {error && (
-          <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
+      <div className="mx-auto max-w-7xl space-y-4 px-6 py-8">
+        {error && <Alert variant="error">{error}</Alert>}
 
         {codes.length === 0 ? (
-          <div className="text-center py-16 text-slate-500 dark:text-slate-400">
-            <Key className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p className="font-medium mb-1">{t("noCodes")}</p>
-            <p className="text-sm">{t("noCodesDesc")}</p>
+          <div className="py-16 text-center">
+            <Key
+              aria-hidden="true"
+              className="mx-auto mb-4 size-10 text-muted-foreground"
+            />
+            <p className="mb-1 font-medium">{t("noCodes")}</p>
+            <p className="text-sm text-muted-foreground">{t("noCodesDesc")}</p>
           </div>
         ) : (
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
             {/* Mobile */}
-            <div className="block md:hidden divide-y divide-slate-200 dark:divide-slate-700">
+            <ul className="divide-y md:hidden">
               {codes.map((c) => (
-                <div key={c.id} className="p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-slate-900 dark:text-white font-medium text-sm">
-                      {c.code}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={c.status} expiresAt={c.expiresAt} />
-                      {c.status === "pending" && <CopyButton code={c.code} />}
+                <li key={c.id} className="flex items-center gap-3 p-4">
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm font-medium">
+                        {c.code}
+                      </span>
+                      <CodeStatusBadge
+                        status={c.status}
+                        expiresAt={c.expiresAt}
+                      />
                     </div>
+                    <p className="text-xs text-muted-foreground tabular-nums">
+                      {t("expiresLabel")} {formatDate(c.expiresAt)}
+                      {c.createdAt &&
+                        ` · ${t("createdLabel")} ${formatDate(c.createdAt)}`}
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {t("expiresLabel")} {formatDate(c.expiresAt)}
-                    {c.createdAt &&
-                      ` · ${t("createdLabel")} ${formatDate(c.createdAt)}`}
-                  </p>
-                </div>
+                  {c.status === "pending" && <CopyButton code={c.code} />}
+                </li>
               ))}
-            </div>
+            </ul>
 
             {/* Desktop */}
             <div className="hidden md:block">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-700">
-                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-                      {t("columnCode")}
-                    </th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-                      {t("columnStatus")}
-                    </th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-                      {t("columnExpires")}
-                    </th>
-                    <th className="text-left px-6 py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-                      {t("columnCreated")}
-                    </th>
-                    <th className="px-6 py-3 w-12" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <Table>
+                <TableHeader className="bg-secondary">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="px-6">{t("columnCode")}</TableHead>
+                    <TableHead className="px-6">{t("columnStatus")}</TableHead>
+                    <TableHead className="px-6">{t("columnExpires")}</TableHead>
+                    <TableHead className="px-6">{t("columnCreated")}</TableHead>
+                    <TableHead className="w-12 px-6" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {codes.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="hover:bg-slate-100 dark:hover:bg-slate-700/30"
-                    >
-                      <td className="px-6 py-4 font-mono text-slate-900 dark:text-white text-sm font-medium">
+                    <TableRow key={c.id}>
+                      <TableCell className="px-6 py-3 font-mono font-medium">
                         {c.code}
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge
+                      </TableCell>
+                      <TableCell className="px-6 py-3">
+                        <CodeStatusBadge
                           status={c.status}
                           expiresAt={c.expiresAt}
                         />
-                      </td>
-                      <td className="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm">
+                      </TableCell>
+                      <TableCell className="px-6 py-3 tabular-nums">
                         {formatDate(c.expiresAt)}
-                      </td>
-                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm">
+                      </TableCell>
+                      <TableCell className="px-6 py-3 text-muted-foreground tabular-nums">
                         {c.createdAt ? formatDate(c.createdAt) : "—"}
-                      </td>
-                      <td className="px-6 py-4">
+                      </TableCell>
+                      <TableCell className="px-6 py-3">
                         {c.status === "pending" && <CopyButton code={c.code} />}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         )}
 
-        <p className="text-sm text-slate-500">{t("info")}</p>
-      </main>
+        <p className="text-sm text-muted-foreground">{t("info")}</p>
+      </div>
     </div>
   );
 }

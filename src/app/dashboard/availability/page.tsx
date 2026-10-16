@@ -39,8 +39,6 @@ export default async function AvailabilityPage() {
     <AvailabilityView
       workerId={worker.id}
       centerId={worker.centerId}
-      userEmail={userData.email}
-      enabledFeatures={center?.enabledFeatures ?? []}
       allowedDayTypes={center?.allowedDayTypes ?? []}
     />
   );

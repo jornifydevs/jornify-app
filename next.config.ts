@@ -3,12 +3,25 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+// Covers whichever Supabase the env points to, including the local one.
+const supabaseStoragePatterns = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? [
+      new URL(
+        "/storage/v1/object/public/**",
+        process.env.NEXT_PUBLIC_SUPABASE_URL
+      ),
+    ]
+  : [];
+
 const nextConfig = {
   pageExtensions: ["ts", "tsx", "mdx"],
   images: {
+    // Local Supabase serves storage from 127.0.0.1, which Next blocks by default.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
       { protocol: "https", hostname: "pbs.twimg.com" },
+      ...supabaseStoragePatterns,
     ],
   },
   async headers() {

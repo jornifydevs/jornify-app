@@ -1,26 +1,52 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Clock,
-  LogIn,
-  LogOut,
-  Loader2,
-  Coffee,
-  Play,
-  CalendarClock,
-} from "lucide-react";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Coffee, Loader2, LogIn, LogOut, Play } from "lucide-react";
 import { useTimeTracker } from "../_hooks/useTimeTracker";
+import { WorkdayBar } from "./WorkdayBar";
 import type { CenterFeature } from "@/core/domain/entities";
 import { useTranslations, useLocale } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface TimeTrackerProps {
   workerId: string;
   enabledFeatures: CenterFeature[];
 }
 
+type StatusTone = ComponentProps<typeof StatusBadge>["tone"];
+
 function formatScheduleTime(time: string): string {
   return time.slice(0, 5);
+}
+
+function LiveClock({ date, locale }: { date: Date; locale: string }) {
+  const parts = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(date);
+  const isMinor = (type?: string) => type === "second" || type === "dayPeriod";
+
+  return (
+    <p className="flex items-baseline tabular-nums">
+      {parts.map((part, index) => (
+        <span
+          key={index}
+          suppressHydrationWarning
+          className={
+            isMinor(part.type) ||
+            (part.type === "literal" && isMinor(parts[index + 1]?.type))
+              ? "whitespace-pre text-[1.75rem] font-medium tracking-[-0.03em] text-muted-foreground"
+              : "text-[4.75rem] font-semibold leading-none tracking-[-0.05em]"
+          }
+        >
+          {part.value}
+        </span>
+      ))}
+    </p>
+  );
 }
 
 export default function TimeTracker({
@@ -40,7 +66,11 @@ export default function TimeTracker({
     breakEnabled,
     breakAlreadyTaken,
     isWithinSchedule,
+    isBeforeSchedule,
     todayWorkday,
+    timeline,
+    clockedInAt,
+    breakStartedAt,
     handleClockIn,
     handleRequestClockOut,
     handleCancelClockOut,
@@ -54,275 +84,194 @@ export default function TimeTracker({
   const tc = useTranslations("common");
   const locale = useLocale();
 
+  const formatClock = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const shiftStart = todayWorkday
+    ? formatScheduleTime(todayWorkday.startWorkday)
+    : "";
+  const shiftEnd = todayWorkday
+    ? formatScheduleTime(todayWorkday.endWorkday)
+    : "";
+
   const showBreakButton =
     breakEnabled &&
     isWorking &&
     !breakAlreadyTaken &&
     todayWorkday?.breakType !== "none";
 
+  const status: { tone: StatusTone; label: string } = initializing
+    ? { tone: "neutral", label: tc("loading") }
+    : isOnBreak && breakStartedAt
+      ? {
+          tone: "pause",
+          label: t("onBreakSince", { time: formatClock(breakStartedAt) }),
+        }
+      : isWorking && clockedInAt
+        ? {
+            tone: "live",
+            label: t("workingSince", { time: formatClock(clockedInAt) }),
+          }
+        : isWithinSchedule
+          ? { tone: "brand", label: t("shiftStartedAt", { time: shiftStart }) }
+          : isBeforeSchedule
+            ? { tone: "brand", label: t("shiftStartsAt", { time: shiftStart }) }
+            : { tone: "neutral", label: t("offDuty") };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
+        <div
+          role="alert"
+          className="rounded-lg bg-alert-soft px-4 py-3 text-sm font-medium text-alert-text"
+        >
+          {error}
         </div>
       )}
 
-      {/* Current Time Display */}
-      <div className="text-center">
-        <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/80 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
-          <Clock className="w-5 h-5 text-blue-400" />
-          <span
-            className="text-5xl font-mono font-bold text-slate-900 dark:text-white"
+      <section
+        aria-label={t("todayLabel")}
+        className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm sm:p-6"
+      >
+        <StatusBadge tone={status.tone} pulse={status.tone === "live"}>
+          {status.label}
+        </StatusBadge>
+
+        <div className="space-y-2">
+          {isWorking ? (
+            <p
+              className={cn(
+                "text-[3.5rem] font-semibold leading-none tracking-[-0.045em] tabular-nums",
+                isOnBreak && "text-pause-text"
+              )}
+            >
+              {formatElapsedTime(isOnBreak ? breakElapsedTime : elapsedTime)}
+            </p>
+          ) : (
+            <LiveClock date={currentTime} locale={locale} />
+          )}
+          <p
+            className="text-sm text-muted-foreground first-letter:uppercase"
             suppressHydrationWarning
           >
-            {currentTime.toLocaleTimeString(locale)}
-          </span>
+            {isWorking
+              ? t(isOnBreak ? "breakTime" : "timeWorkedToday")
+              : currentTime.toLocaleDateString(locale, {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                })}
+          </p>
         </div>
-        <p
-          className="mt-2 text-xl text-slate-500 dark:text-slate-400"
-          suppressHydrationWarning
-        >
-          {currentTime.toLocaleDateString(locale, {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      </div>
 
-      {/* Schedule Info */}
-      {todayWorkday && (
-        <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <CalendarClock className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              {t("scheduleTitle")}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/50 rounded-lg px-3 py-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500">
-                {t("entry")}
-              </span>
-              <span className="text-sm font-mono font-semibold text-slate-900 dark:text-white">
-                {formatScheduleTime(todayWorkday.startWorkday)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/50 rounded-lg px-3 py-2">
-              <span className="text-xs text-slate-400 dark:text-slate-500">
-                {t("exit")}
-              </span>
-              <span className="text-sm font-mono font-semibold text-slate-900 dark:text-white">
-                {formatScheduleTime(todayWorkday.endWorkday)}
-              </span>
+        {todayWorkday && timeline && (
+          <WorkdayBar
+            timeline={timeline}
+            startLabel={shiftStart}
+            endLabel={shiftEnd}
+            label={t("timelineLabel", { start: shiftStart, end: shiftEnd })}
+          />
+        )}
+
+        {todayWorkday && (
+          <dl className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm">
+            <div className="flex gap-1.5">
+              <dt className="text-muted-foreground">{t("shift")}</dt>
+              <dd className="font-semibold tabular-nums">
+                {shiftStart} – {shiftEnd}
+              </dd>
             </div>
             {todayWorkday.breakType === "scheduled" &&
               todayWorkday.scheduledStartBreak &&
               todayWorkday.scheduledEndBreak && (
-                <>
-                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/50 rounded-lg px-3 py-2">
-                    <span className="text-xs text-slate-500">
-                      {t("breakFrom")}
-                    </span>
-                    <span className="text-sm font-mono font-semibold text-amber-400">
-                      {formatScheduleTime(todayWorkday.scheduledStartBreak)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-900/50 rounded-lg px-3 py-2">
-                    <span className="text-xs text-slate-500">
-                      {t("breakUntil")}
-                    </span>
-                    <span className="text-sm font-mono font-semibold text-amber-400">
-                      {formatScheduleTime(todayWorkday.scheduledEndBreak)}
-                    </span>
-                  </div>
-                </>
-              )}
-            {todayWorkday.breakType === "free" && breakEnabled && (
-              <div className="col-span-2 flex items-center justify-center bg-slate-100 dark:bg-slate-900/50 rounded-lg px-3 py-2">
-                <span className="text-xs text-amber-600 dark:text-amber-400">
-                  {t("freeBreakAvailable")}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Status Card */}
-      <div className="bg-gradient-to-br from-white/80 to-slate-50/50 dark:from-slate-800/50 dark:to-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 p-8">
-        <div className="text-center space-y-6">
-          <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-              {t("currentStatus")}
-            </p>
-            {initializing ? (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600">
-                <Loader2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 animate-spin" />
-                <span className="font-semibold text-slate-400 dark:text-slate-500">
-                  {tc("loading")}
-                </span>
-              </div>
-            ) : (
-              <div
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
-                  isOnBreak
-                    ? "bg-amber-500/20 border border-amber-500/50"
-                    : isWorking
-                      ? "bg-green-500/20 border border-green-500/50"
-                      : isWithinSchedule
-                        ? "bg-blue-500/20 border border-blue-500/50"
-                        : "bg-slate-200 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600"
-                }`}
-              >
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    isOnBreak
-                      ? "bg-amber-400 animate-pulse"
-                      : isWorking
-                        ? "bg-green-400 animate-pulse"
-                        : isWithinSchedule
-                          ? "bg-blue-400"
-                          : "bg-slate-400 dark:bg-slate-500"
-                  }`}
-                />
-                <span
-                  className={`font-semibold ${
-                    isOnBreak
-                      ? "text-amber-400"
-                      : isWorking
-                        ? "text-green-400"
-                        : isWithinSchedule
-                          ? "text-blue-400"
-                          : "text-slate-400"
-                  }`}
-                >
-                  {isOnBreak
-                    ? t("onBreak")
-                    : isWorking
-                      ? t("working")
-                      : isWithinSchedule
-                        ? t("withinSchedule")
-                        : t("offDuty")}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {isWorking && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-                  {t("timeWorkedToday")}
-                </p>
-                <p className="text-5xl font-mono font-bold text-blue-400">
-                  {formatElapsedTime(elapsedTime)}
-                </p>
-              </div>
-
-              {isOnBreak && (
-                <div>
-                  <p className="text-sm text-amber-400/80 mb-1">
-                    {t("breakTime")}
-                  </p>
-                  <p className="text-2xl font-mono font-bold text-amber-400">
-                    {formatElapsedTime(breakElapsedTime)}
-                  </p>
+                <div className="flex gap-1.5">
+                  <dt className="text-muted-foreground">{t("break")}</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {formatScheduleTime(todayWorkday.scheduledStartBreak)} –{" "}
+                    {formatScheduleTime(todayWorkday.scheduledEndBreak)}
+                  </dd>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Break Button */}
-          {showBreakButton && (
-            <Button
-              onClick={isOnBreak ? handleEndBreak : handleStartBreak}
-              disabled={loading}
-              className={`w-full py-6 text-base font-semibold rounded-xl shadow-lg transition-all duration-200 ${
-                isOnBreak
-                  ? "bg-green-600 hover:bg-green-700 shadow-green-500/30"
-                  : "bg-amber-600 hover:bg-amber-700 shadow-amber-500/30"
-              }`}
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : isOnBreak ? (
-                <>
-                  <Play className="w-5 h-5 mr-2" />
-                  {t("endBreak")}
-                </>
-              ) : (
-                <>
-                  <Coffee className="w-5 h-5 mr-2" />
-                  {t("startBreak")}
-                </>
-              )}
-            </Button>
-          )}
-
-          {/* Clock In/Out Button */}
-          {confirmingClockOut ? (
-            <div className="space-y-3">
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium text-center">
-                {t("confirmClockOutMessage")}
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleClockOut}
-                  disabled={loading}
-                  className="flex-1 py-6 text-base font-semibold rounded-xl bg-red-600 hover:bg-red-700 shadow-red-500/30 shadow-lg"
-                >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <LogOut className="w-5 h-5 mr-2" />
-                      {t("confirmClockOutYes")}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={handleCancelClockOut}
-                  disabled={loading}
-                  className="flex-1 py-6 text-base font-semibold rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-white"
-                >
-                  {tc("cancel")}
-                </Button>
+            {todayWorkday.breakType === "free" && breakEnabled && (
+              <div className="flex gap-1.5">
+                <dt className="sr-only">{t("break")}</dt>
+                <dd className="font-medium text-pause-text">
+                  {t("freeBreakAvailable")}
+                </dd>
               </div>
+            )}
+          </dl>
+        )}
+
+        {confirmingClockOut ? (
+          <div className="space-y-3 rounded-xl bg-secondary p-4">
+            <p className="text-[15px] font-semibold">
+              {t("confirmClockOutMessage")}
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button size="lg" onClick={handleClockOut} disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" /> : <LogOut />}
+                {t("confirmClockOutYes")}
+              </Button>
+              <Button
+                size="lg"
+                variant="ghost"
+                onClick={handleCancelClockOut}
+                disabled={loading}
+              >
+                {tc("cancel")}
+              </Button>
             </div>
-          ) : (
+          </div>
+        ) : isOnBreak ? (
+          <Button
+            size="lg"
+            variant="brand"
+            className="w-full"
+            onClick={handleEndBreak}
+            disabled={loading}
+          >
+            {loading ? <Loader2 className="animate-spin" /> : <Play />}
+            {t("endBreak")}
+          </Button>
+        ) : isWorking ? (
+          <div className="flex flex-col gap-2.5">
+            {showBreakButton && (
+              <Button
+                size="lg"
+                variant="pause"
+                onClick={handleStartBreak}
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="animate-spin" /> : <Coffee />}
+                {t("startBreak")}
+              </Button>
+            )}
             <Button
-              onClick={isWorking ? handleRequestClockOut : handleClockIn}
-              disabled={loading || isOnBreak || initializing}
-              className={`w-full py-8 text-lg font-semibold rounded-xl shadow-lg transition-all duration-200 ${
-                isWorking
-                  ? "bg-red-600 hover:bg-red-700 shadow-red-500/30"
-                  : "bg-green-600 hover:bg-green-700 shadow-green-500/30"
-              } ${isOnBreak ? "opacity-50 cursor-not-allowed" : ""}`}
+              size="lg"
+              onClick={handleRequestClockOut}
+              disabled={loading}
             >
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <>
-                  {isWorking ? (
-                    <>
-                      <LogOut className="w-6 h-6 mr-2" />
-                      {t("clockOut")}
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="w-6 h-6 mr-2" />
-                      {t("clockIn")}
-                    </>
-                  )}
-                </>
-              )}
+              <LogOut />
+              {t("clockOut")}
             </Button>
-          )}
-        </div>
-      </div>
+          </div>
+        ) : (
+          <Button
+            size="lg"
+            variant="brand"
+            className="w-full"
+            onClick={handleClockIn}
+            disabled={loading || initializing}
+          >
+            {loading ? <Loader2 className="animate-spin" /> : <LogIn />}
+            {t("clockIn")}
+          </Button>
+        )}
+      </section>
     </div>
   );
 }

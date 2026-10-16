@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/infrastructure/supabase/client";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Clock } from "lucide-react";
+import { JornifyLogo } from "@/components/JornifyLogo";
 import { useTranslations } from "next-intl";
 
 export function LoginForm() {
@@ -40,95 +42,67 @@ export function LoginForm() {
   };
 
   return (
-    <div className="flex flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/50">
-              <Clock className="w-12 h-12 text-white" />
-            </div>
-          </div>
-          <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+    <div className="flex flex-1 flex-col justify-center">
+      <div className="mx-auto w-full max-w-md px-5 py-12">
+        <div className="text-center">
+          <JornifyLogo size="lg" />
+          <h1 className="mt-8 text-3xl font-semibold tracking-tight">
             {t("title")}
-          </h2>
-          <p className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
-            {t("subtitle")}
+          </h1>
+          <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
+        </div>
+
+        <Card className="mt-8 p-6 sm:p-8">
+          <form onSubmit={handleLogin} className="space-y-5">
+            {expired && <Alert variant="warning">{t("sessionExpired")}</Alert>}
+
+            {error && <Alert variant="error">{error}</Alert>}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">{t("email")}</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder={t("emailPlaceholder")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">{t("password")}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              variant="brand"
+              size="lg"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? t("submitting") : t("submit")}
+            </Button>
+          </form>
+
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            {t("noAccount")}{" "}
+            <Link
+              href="/auth/register"
+              className="inline-flex min-h-11 items-center rounded-sm font-medium text-brand-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              {t("register")}
+            </Link>
           </p>
-        </div>
-
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm px-8 py-10 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700">
-            <form onSubmit={handleLogin} className="space-y-6">
-              {expired && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/50 rounded-lg">
-                  <p className="text-sm text-amber-400">
-                    {t("sessionExpired")}
-                  </p>
-                </div>
-              )}
-
-              {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-                  <p className="text-sm text-red-400">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="email"
-                  className="text-slate-800 dark:text-slate-200"
-                >
-                  {t("email")}
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
-                  placeholder={t("emailPlaceholder")}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="password"
-                  className="text-slate-800 dark:text-slate-200"
-                >
-                  {t("password")}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-200"
-                disabled={loading}
-              >
-                {loading ? t("submitting") : t("submit")}
-              </Button>
-            </form>
-
-            <p className="text-center text-sm pt-6 text-slate-500 dark:text-slate-400">
-              {t("noAccount")}{" "}
-              <Link
-                href="/auth/register"
-                className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-              >
-                {t("register")}
-              </Link>
-            </p>
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

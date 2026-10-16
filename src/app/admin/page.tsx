@@ -8,6 +8,7 @@ import { GetAllCompaniesUseCase } from "@/core/application/use-cases/super-admin
 import Link from "next/link";
 import { LogOut, Building2, ChevronRight, Shield } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { Button } from "@/components/ui/button";
 
 export default async function SuperAdminDashboard() {
   const cookieStore = await cookies();
@@ -40,103 +41,94 @@ export default async function SuperAdminDashboard() {
   const tc = await getTranslations("common");
 
   return (
-    <div className="flex flex-1 flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="flex flex-1 flex-col">
       {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-600 rounded-lg">
-              <Shield className="w-6 h-6 text-white" />
+      <header className="border-b bg-card">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-6 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground">
+              <Shield className="size-5" aria-hidden="true" />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-semibold tracking-tight">
                 {t("title")}
               </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="truncate text-sm text-muted-foreground">
                 {userData.name} {userData.lastName}
               </p>
             </div>
           </div>
           <form action="/auth/signout" method="post">
-            <button
+            <Button
               type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
+              variant="outline"
+              aria-label={tc("signOut")}
+              className="px-3 sm:px-5"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut />
               <span className="hidden sm:inline">{tc("signOut")}</span>
-            </button>
+            </Button>
           </form>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8 flex-1">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
         <div className="space-y-8">
           {/* Welcome */}
-          <div className="bg-gradient-to-r from-red-600/20 to-orange-600/20 border border-red-500/50 rounded-2xl p-6">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+          <section>
+            <h2 className="text-xl font-semibold tracking-tight">
               {t("panelTitle")}
             </h2>
-            <p className="text-slate-700 dark:text-slate-300">
+            <p className="mt-1 text-muted-foreground">
               {t("panelDescription")}
             </p>
-          </div>
+          </section>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-600/20 rounded-lg">
-                  <Building2 className="w-8 h-8 text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("companies")}
-                  </p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {companies.length}
-                  </p>
-                </div>
-              </div>
+          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <dt className="text-sm text-muted-foreground">
+                {t("companies")}
+              </dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
+                {companies.length}
+              </dd>
             </div>
 
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-600/20 rounded-lg">
-                  <Building2 className="w-8 h-8 text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("totalCenters")}
-                  </p>
-                  <p className="text-3xl font-bold text-slate-900 dark:text-white">
-                    {centersCount}
-                  </p>
-                </div>
-              </div>
+            <div className="rounded-xl border bg-card p-5 shadow-sm">
+              <dt className="text-sm text-muted-foreground">
+                {t("totalCenters")}
+              </dt>
+              <dd className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">
+                {centersCount}
+              </dd>
             </div>
-          </div>
+          </dl>
 
           {/* Navigation */}
-          <Link
-            href="/admin/companies"
-            className="group flex items-start justify-between bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-blue-500/30 p-6 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all"
-          >
-            <div>
-              <div className="p-3 bg-blue-600/20 rounded-lg inline-block mb-4">
-                <Building2 className="w-6 h-6 text-blue-400" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <Link
+              href="/admin/companies"
+              className="group flex items-start gap-4 rounded-xl border bg-card p-5 shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground transition-colors group-hover:bg-track">
+                <Building2 className="size-5" aria-hidden="true" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-                {t("companyManagement")}
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {t("companyManagementDesc")}
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-900 dark:text-slate-500 dark:group-hover:text-white transition-colors mt-3" />
-          </Link>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold">{t("companyManagement")}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t("companyManagementDesc")}
+                </p>
+              </div>
+              <ChevronRight
+                className="mt-2.5 size-5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+                aria-hidden="true"
+              />
+            </Link>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

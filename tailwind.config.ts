@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 import tailwindAnimate from "tailwindcss-animate";
 import tailwindTypography from "@tailwindcss/typography";
+
+const token = (name: string) => `oklch(var(--${name}) / <alpha-value>)`;
 
 export default {
   darkMode: ["class"],
@@ -11,52 +14,88 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-geist-sans)", ...defaultTheme.fontFamily.sans],
+        mono: ["var(--font-geist-mono)", ...defaultTheme.fontFamily.mono],
+      },
       colors: {
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: token("background"),
+        foreground: token("foreground"),
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: token("card"),
+          foreground: token("card-foreground"),
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: token("popover"),
+          foreground: token("popover-foreground"),
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: token("primary"),
+          foreground: token("primary-foreground"),
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: token("secondary"),
+          foreground: token("secondary-foreground"),
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: token("muted"),
+          foreground: token("muted-foreground"),
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: token("accent"),
+          foreground: token("accent-foreground"),
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: token("destructive"),
+          foreground: token("destructive-foreground"),
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
+        border: {
+          DEFAULT: token("border"),
+          strong: token("border-strong"),
+        },
+        input: token("input"),
+        ring: token("ring"),
+        track: token("track"),
+        brand: {
+          DEFAULT: token("brand"),
+          foreground: token("brand-foreground"),
+          text: token("brand-text"),
+          soft: "var(--brand-soft)",
+        },
+        live: {
+          DEFAULT: token("live"),
+          text: token("live-text"),
+          soft: "var(--live-soft)",
+        },
+        pause: {
+          DEFAULT: token("pause"),
+          text: token("pause-text"),
+          soft: "var(--pause-soft)",
+        },
+        alert: {
+          text: token("alert-text"),
+          soft: "var(--alert-soft)",
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 2px)",
+        lg: "var(--radius)",
+        xl: "calc(var(--radius) + 6px)",
+        "2xl": "calc(var(--radius) + 14px)",
+      },
+      boxShadow: {
+        float: "var(--shadow-float)",
+      },
+      keyframes: {
+        "live-pulse": {
+          "0%": { boxShadow: "0 0 0 0 oklch(var(--live) / 0.55)" },
+          "70%": { boxShadow: "0 0 0 7px oklch(var(--live) / 0)" },
+          "100%": { boxShadow: "0 0 0 0 oklch(var(--live) / 0)" },
+        },
+      },
+      animation: {
+        "live-pulse": "live-pulse 2s ease-out infinite",
       },
     },
   },

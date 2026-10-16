@@ -2,24 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Clock,
   Coffee,
   Save,
-  Building2,
   CalendarDays,
   Plus,
   Trash2,
   Loader2,
   Pencil,
   AlertTriangle,
-  LogOut,
+  Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/infrastructure/supabase/client";
 import { SupabaseCenterRepository } from "@/infrastructure/supabase/repositories/supabase-center.repository";
 import { SupabaseLocalHolidayRepository } from "@/infrastructure/supabase/repositories/supabase-local-holiday.repository";
@@ -299,146 +302,118 @@ export default function CenterScheduleForm({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center gap-3">
-          <Link
-            href="/dashboard/admin/centers"
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-          </Link>
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <Building2 className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {center.name}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t("pageSubtitle")}
-            </p>
-          </div>
-          <form action="/auth/signout" method="post" className="ml-auto">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{tc("signOut")}</span>
-            </button>
-          </form>
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-2xl px-6 pt-6 lg:pt-8">
+        <PageHeader
+          title={center.name}
+          description={t("pageSubtitle")}
+          backHref="/dashboard/admin/centers"
+          backLabel={tc("back")}
+        />
+      </div>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <div className="mx-auto max-w-2xl px-6 py-8">
         <div className="space-y-6">
           {/* Basic Info Section */}
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Pencil className="w-5 h-5 text-green-400" />
+          <section className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold tracking-tight">
+              <Pencil
+                className="size-5 text-muted-foreground"
+                aria-hidden="true"
+              />
               {t("centerInfo")}
             </h2>
 
             {infoError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg mb-4">
-                <p className="text-sm text-red-400">{infoError}</p>
-              </div>
+              <Alert variant="error" className="mb-5">
+                {infoError}
+              </Alert>
             )}
             {infoSuccess && (
-              <div className="p-3 bg-green-500/10 border border-green-500/50 rounded-lg mb-4">
-                <p className="text-sm text-green-400">{t("infoUpdated")}</p>
-              </div>
+              <Alert variant="success" className="mb-5">
+                {t("infoUpdated")}
+              </Alert>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("name")}
-                </Label>
+                <Label htmlFor="center-name">{t("name")}</Label>
                 <Input
+                  id="center-name"
                   type="text"
                   value={infoForm.name}
                   onChange={(e) =>
                     setInfoForm({ ...infoForm, name: e.target.value })
                   }
-                  className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("address")}
-                </Label>
+                <Label htmlFor="center-address">{t("address")}</Label>
                 <Input
+                  id="center-address"
                   type="text"
                   value={infoForm.address}
                   onChange={(e) =>
                     setInfoForm({ ...infoForm, address: e.target.value })
                   }
-                  className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("phone")}
-                </Label>
+                <Label htmlFor="center-phone">{t("phone")}</Label>
                 <Input
+                  id="center-phone"
                   type="tel"
                   value={infoForm.phone}
                   onChange={(e) =>
                     setInfoForm({ ...infoForm, phone: e.target.value })
                   }
-                  placeholder="612 345 678"
-                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-600"
+                  placeholder={t("phonePlaceholder")}
+                  className="tabular-nums"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("email")}
-                </Label>
+                <Label htmlFor="center-email">{t("email")}</Label>
                 <Input
+                  id="center-email"
                   type="email"
                   value={infoForm.email}
                   onChange={(e) =>
                     setInfoForm({ ...infoForm, email: e.target.value })
                   }
-                  placeholder="centro@empresa.com"
-                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-600"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("country")}
-                </Label>
-                <select
+                <Label htmlFor="center-country">{t("country")}</Label>
+                <NativeSelect
+                  id="center-country"
                   value={infoForm.nationality}
                   onChange={(e) => handleNationalityChange(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:[&>option]:bg-slate-800"
                 >
                   {countryOptions.map((c) => (
                     <option key={c.isoCode} value={c.isoCode}>
                       {c.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("location")}
-                </Label>
+                <Label htmlFor="center-location">{t("location")}</Label>
                 {loadingSubdivisions ? (
-                  <div className="flex items-center gap-2 py-2 text-slate-500 dark:text-slate-400">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">{t("loadingRegions")}</span>
+                  <div className="flex h-12 items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    <span>{t("loadingRegions")}</span>
                   </div>
                 ) : availableSubdivisions.length > 0 ? (
-                  <select
+                  <NativeSelect
+                    id="center-location"
                     value={infoForm.location}
                     onChange={(e) =>
                       setInfoForm({ ...infoForm, location: e.target.value })
                     }
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:[&>option]:bg-slate-800"
                   >
                     <option value="">{t("selectRegion")}</option>
                     {availableSubdivisions.map((p) => (
@@ -446,16 +421,16 @@ export default function CenterScheduleForm({
                         {p.name}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 ) : (
                   <Input
+                    id="center-location"
                     type="text"
                     value={infoForm.location}
                     onChange={(e) =>
                       setInfoForm({ ...infoForm, location: e.target.value })
                     }
                     placeholder={t("regionPlaceholder")}
-                    className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-600"
                   />
                 )}
               </div>
@@ -464,42 +439,32 @@ export default function CenterScheduleForm({
             <Button
               onClick={handleSaveInfo}
               disabled={savingInfo}
-              className="mt-4 bg-green-600 hover:bg-green-700"
+              className="mt-6 w-full sm:w-auto"
             >
-              {savingInfo ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
+              {savingInfo ? <Loader2 className="animate-spin" /> : <Save />}
               {savingInfo ? t("savingInfo") : t("saveInfo")}
             </Button>
-          </div>
+          </section>
 
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-              <p className="text-sm text-red-400">{error}</p>
-            </div>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
 
-          {success && (
-            <div className="p-3 bg-green-500/10 border border-green-500/50 rounded-lg">
-              <p className="text-sm text-green-400">{t("scheduleUpdated")}</p>
-            </div>
-          )}
+          {success && <Alert variant="success">{t("scheduleUpdated")}</Alert>}
 
           {/* Work Schedule */}
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-400" />
+          <section className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold tracking-tight">
+              <Clock
+                className="size-5 text-muted-foreground"
+                aria-hidden="true"
+              />
               {t("scheduleTitle")}
             </h2>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-5">
               <div className="space-y-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("entryTime")}
-                </Label>
+                <Label htmlFor="default-start-workday">{t("entryTime")}</Label>
                 <Input
+                  id="default-start-workday"
                   type="time"
                   value={formData.defaultStartWorkday}
                   onChange={(e) =>
@@ -508,14 +473,13 @@ export default function CenterScheduleForm({
                       defaultStartWorkday: e.target.value,
                     })
                   }
-                  className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
+                  className="tabular-nums"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-slate-700 dark:text-slate-200">
-                  {t("exitTime")}
-                </Label>
+                <Label htmlFor="default-end-workday">{t("exitTime")}</Label>
                 <Input
+                  id="default-end-workday"
                   type="time"
                   value={formData.defaultEndWorkday}
                   onChange={(e) =>
@@ -524,26 +488,36 @@ export default function CenterScheduleForm({
                       defaultEndWorkday: e.target.value,
                     })
                   }
-                  className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
+                  className="tabular-nums"
                 />
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Break Configuration — only if super admin enabled the feature */}
           {center.enabledFeatures.includes(CENTER_FEATURES.BREAK) ? (
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <Coffee className="w-5 h-5 text-amber-400" />
+            <section className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+              <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <Coffee
+                  className="size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 {t("breakConfig")}
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="space-y-3">
-                  <Label className="text-slate-700 dark:text-slate-200">
+                  <p
+                    id="break-type-label"
+                    className="text-sm font-medium leading-none"
+                  >
                     {t("breakType")}
-                  </Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  </p>
+                  <div
+                    role="group"
+                    aria-labelledby="break-type-label"
+                    className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+                  >
                     {(
                       [
                         {
@@ -562,35 +536,61 @@ export default function CenterScheduleForm({
                           desc: t("breakScheduledDesc"),
                         },
                       ] as const
-                    ).map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() =>
-                          setFormData({ ...formData, breakType: option.value })
-                        }
-                        className={`p-3 rounded-lg border text-left transition-all ${
-                          formData.breakType === option.value
-                            ? "bg-amber-600/20 border-amber-500/50 text-amber-300"
-                            : "bg-slate-50 border-slate-300 text-slate-500 hover:border-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-slate-400 dark:hover:border-slate-500"
-                        }`}
-                      >
-                        <p className="font-medium text-sm">{option.label}</p>
-                        <p className="text-xs mt-0.5 opacity-75">
-                          {option.desc}
-                        </p>
-                      </button>
-                    ))}
+                    ).map((option) => {
+                      const selected = formData.breakType === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              breakType: option.value,
+                            })
+                          }
+                          className={cn(
+                            "flex min-h-11 items-start justify-between gap-2 rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                            selected
+                              ? "border-pause bg-pause-soft text-pause-text"
+                              : "bg-card text-foreground hover:border-border-strong hover:bg-accent"
+                          )}
+                        >
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold">
+                              {option.label}
+                            </span>
+                            <span
+                              className={cn(
+                                "mt-0.5 block text-xs",
+                                selected
+                                  ? "text-pause-text/80"
+                                  : "text-muted-foreground"
+                              )}
+                            >
+                              {option.desc}
+                            </span>
+                          </span>
+                          {selected && (
+                            <Check
+                              className="mt-0.5 size-4 shrink-0"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {formData.breakType === "scheduled" && (
-                  <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-5">
                     <div className="space-y-2">
-                      <Label className="text-slate-700 dark:text-slate-200">
+                      <Label htmlFor="default-start-break">
                         {t("breakStart")}
                       </Label>
                       <Input
+                        id="default-start-break"
                         type="time"
                         value={formData.defaultStartBreak}
                         onChange={(e) =>
@@ -599,14 +599,13 @@ export default function CenterScheduleForm({
                             defaultStartBreak: e.target.value,
                           })
                         }
-                        className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
+                        className="tabular-nums"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 dark:text-slate-200">
-                        {t("breakEnd")}
-                      </Label>
+                      <Label htmlFor="default-end-break">{t("breakEnd")}</Label>
                       <Input
+                        id="default-end-break"
                         type="time"
                         value={formData.defaultEndBreak}
                         onChange={(e) =>
@@ -615,238 +614,232 @@ export default function CenterScheduleForm({
                             defaultEndBreak: e.target.value,
                           })
                         }
-                        className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
+                        className="tabular-nums"
                       />
                     </div>
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           ) : (
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                <Coffee className="w-5 h-5" />
-                <p className="text-sm">{t("breakDisabled")}</p>
-              </div>
-            </div>
+            <Alert variant="info">
+              <Coffee aria-hidden="true" />
+              <span>{t("breakDisabled")}</span>
+            </Alert>
           )}
 
           {/* Save Schedule Button */}
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-base font-semibold"
-          >
-            <Save className="w-5 h-5 mr-2" />
+          <Button onClick={handleSave} disabled={saving} className="w-full">
+            <Save />
             {saving ? t("saving") : t("saveSchedule")}
           </Button>
 
           {/* Local Holidays Section */}
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-orange-400" />
+          <section className="rounded-xl border bg-card p-4 shadow-sm sm:p-6">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <CalendarDays
+                  className="size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
                 {t("localHolidays")}
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setHolidayYear(holidayYear - 1)}
-                  className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 px-2"
+                  aria-label={t("previousYear")}
                 >
-                  &larr;
+                  <ChevronLeft />
                 </Button>
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 min-w-[4ch] text-center">
+                <span
+                  aria-live="polite"
+                  className="min-w-[4ch] text-center text-sm font-semibold tabular-nums"
+                >
                   {holidayYear}
                 </span>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setHolidayYear(holidayYear + 1)}
-                  className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 px-2"
+                  aria-label={t("nextYear")}
                 >
-                  &rarr;
+                  <ChevronRight />
                 </Button>
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            <p className="mb-5 text-sm text-muted-foreground">
               {t("localHolidaysDesc")}{" "}
-              <span className="text-slate-600 dark:text-slate-400">
+              <span className="font-medium text-foreground">
                 {center.address}
               </span>
             </p>
 
             {holidayError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg mb-4">
-                <p className="text-sm text-red-400">{holidayError}</p>
-              </div>
+              <Alert variant="error" className="mb-5">
+                {holidayError}
+              </Alert>
             )}
 
             {holidaySuccess && (
-              <div className="p-3 bg-green-500/10 border border-green-500/50 rounded-lg mb-4">
-                <p className="text-sm text-green-400">{t("holidayAdded")}</p>
-              </div>
+              <Alert variant="success" className="mb-5">
+                {t("holidayAdded")}
+              </Alert>
             )}
 
             {/* Add Holiday Form */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
-              <div className="flex-1 space-y-1">
-                <Label className="text-slate-700 dark:text-slate-300 text-xs">
-                  {t("holidayDate")}
-                </Label>
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="space-y-2 sm:w-44 sm:shrink-0">
+                <Label htmlFor="holiday-date">{t("holidayDate")}</Label>
                 <Input
+                  id="holiday-date"
                   type="date"
                   value={holidayDate}
                   min={`${holidayYear}-01-01`}
                   max={`${holidayYear}-12-31`}
                   onChange={(e) => setHolidayDate(e.target.value)}
-                  className="bg-white border-slate-300 text-slate-900 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white"
+                  className="tabular-nums"
                 />
               </div>
-              <div className="flex-[2] space-y-1">
-                <Label className="text-slate-700 dark:text-slate-300 text-xs">
-                  {t("holidayName")}
-                </Label>
+              <div className="space-y-2 sm:min-w-0 sm:flex-1">
+                <Label htmlFor="holiday-name">{t("holidayName")}</Label>
                 <Input
+                  id="holiday-name"
                   type="text"
                   value={holidayName}
                   onChange={(e) => setHolidayName(e.target.value)}
                   placeholder={t("holidayPlaceholder")}
-                  className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-600"
                 />
               </div>
-              <div className="flex items-end">
-                <Button
-                  onClick={handleAddHoliday}
-                  disabled={
-                    savingHoliday || !holidayDate || !holidayName.trim()
-                  }
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  {savingHoliday ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4" />
-                  )}
-                  <span className="ml-1 sm:hidden lg:inline">
-                    {t("addHoliday")}
-                  </span>
-                </Button>
-              </div>
+              <Button
+                onClick={handleAddHoliday}
+                disabled={savingHoliday || !holidayDate || !holidayName.trim()}
+                className="h-12 w-full sm:w-auto"
+              >
+                {savingHoliday ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Plus />
+                )}
+                {t("addHoliday")}
+              </Button>
             </div>
 
             {/* Holidays List */}
             {loadingHolidays ? (
-              <div className="flex items-center justify-center py-6 text-slate-500 dark:text-slate-400 gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">{t("loadingHolidays")}</span>
+              <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                <span>{t("loadingHolidays")}</span>
               </div>
             ) : localHolidays.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
+              <p className="py-6 text-center text-sm text-muted-foreground">
                 {t("noHolidays", { year: holidayYear })}
               </p>
             ) : (
-              <div className="space-y-2">
+              <ul className="divide-y rounded-lg border">
                 {localHolidays.map((holiday) => (
-                  <div
+                  <li
                     key={holiday.id}
-                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                    className="flex items-center gap-3 py-1.5 pl-4 pr-1.5"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="w-2.5 h-2.5 rounded-full bg-orange-400 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm text-slate-900 dark:text-slate-200">
-                          {holiday.name}
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {new Date(
-                            holiday.date + "T00:00:00"
-                          ).toLocaleDateString(locale, {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "long",
-                          })}
-                        </p>
-                      </div>
+                    <span
+                      aria-hidden="true"
+                      className="size-2 shrink-0 rounded-full bg-brand"
+                    />
+                    <div className="min-w-0 flex-1 py-1">
+                      <p className="truncate text-sm font-medium">
+                        {holiday.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(
+                          holiday.date + "T00:00:00"
+                        ).toLocaleDateString(locale, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "long",
+                        })}
+                      </p>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDeleteHoliday(holiday.id)}
                       disabled={deletingHolidayId === holiday.id}
-                      className="text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                      aria-label={t("deleteHoliday", { name: holiday.name })}
+                      className="shrink-0 text-muted-foreground hover:bg-alert-soft hover:text-alert-text"
                     >
                       {deletingHolidayId === holiday.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="animate-spin" />
                       ) : (
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 />
                       )}
                     </Button>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
-          </div>
+          </section>
 
           {/* Danger Zone — super_admin only */}
           {userRole === "super_admin" && (
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-red-500/30 p-6">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
+            <section className="rounded-xl border border-destructive/40 bg-card p-4 shadow-sm sm:p-6">
+              <h2 className="mb-2 flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <AlertTriangle
+                  className="size-5 text-alert-text"
+                  aria-hidden="true"
+                />
                 {t("dangerZone")}
               </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              <p className="mb-5 text-sm text-muted-foreground">
                 {t("dangerDesc")}
               </p>
 
               {deleteError && (
-                <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg mb-4">
-                  <p className="text-sm text-red-400">{deleteError}</p>
-                </div>
+                <Alert variant="error" className="mb-5">
+                  {deleteError}
+                </Alert>
               )}
 
               {!confirmDelete ? (
                 <Button
-                  variant="destructive"
+                  variant="outline"
                   onClick={() => setConfirmDelete(true)}
-                  className="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30"
+                  className="border-destructive/40 text-alert-text hover:bg-alert-soft hover:text-alert-text"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 />
                   {t("deleteCenter")}
                 </Button>
               ) : (
-                <div className="flex items-center gap-3">
-                  <p className="text-sm text-red-300 font-medium">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="w-full text-sm font-medium text-alert-text sm:w-auto">
                     {t("confirmDeleteCenter")}
                   </p>
                   <Button
                     variant="destructive"
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="bg-red-600 hover:bg-red-700 text-white"
                   >
                     {deleting ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <Loader2 className="animate-spin" />
                     ) : (
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2 />
                     )}
                     {deleting ? t("deleting") : t("yesDelete")}
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={() => setConfirmDelete(false)}
-                    className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                   >
                     {tc("cancel")}
                   </Button>
                 </div>
               )}
-            </div>
+            </section>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { StartBreakUseCase } from "@/core/application/use-cases/time-tracking/st
 import { EndBreakUseCase } from "@/core/application/use-cases/time-tracking/end-break.use-case";
 import { DomainError } from "@/core/domain/errors/domain-errors";
 import { CENTER_FEATURES } from "@/core/domain/entities/center-feature";
+import { buildWorkdayTimeline } from "@/lib/workday-timeline";
 import type {
   TimeRecord,
   Workday,
@@ -260,15 +261,32 @@ export function useTimeTracker({
   );
   const breakAlreadyTaken = !!activeRecord?.breakEndHour;
 
-  const isWithinSchedule = (() => {
-    if (!todayWorkday) return false;
-    const [sh, sm] = todayWorkday.startWorkday.split(":").map(Number);
-    const [eh, em] = todayWorkday.endWorkday.split(":").map(Number);
-    const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-    const startMinutes = sh * 60 + sm;
-    const endMinutes = eh * 60 + em;
-    return nowMinutes >= startMinutes && nowMinutes < endMinutes;
-  })();
+  const toMinutes = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+  const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const startMinutes = todayWorkday
+    ? toMinutes(todayWorkday.startWorkday)
+    : null;
+  const endMinutes = todayWorkday ? toMinutes(todayWorkday.endWorkday) : null;
+  const isWithinSchedule =
+    startMinutes !== null &&
+    endMinutes !== null &&
+    nowMinutes >= startMinutes &&
+    nowMinutes < endMinutes;
+  const isBeforeSchedule = startMinutes !== null && nowMinutes < startMinutes;
+
+  const timeline = todayWorkday
+    ? buildWorkdayTimeline({
+        scheduleStart: todayWorkday.startWorkday,
+        scheduleEnd: todayWorkday.endWorkday,
+        clockIn: activeRecord?.startHour,
+        breakStart: activeRecord?.breakStartHour,
+        breakEnd: activeRecord?.breakEndHour,
+        now: currentTime,
+      })
+    : null;
 
   return {
     currentTime,
@@ -283,7 +301,11 @@ export function useTimeTracker({
     breakEnabled,
     breakAlreadyTaken,
     isWithinSchedule,
+    isBeforeSchedule,
     todayWorkday,
+    timeline,
+    clockedInAt: activeRecord?.startHour,
+    breakStartedAt: activeRecord?.breakStartHour,
     handleClockIn,
     handleRequestClockOut,
     handleCancelClockOut,

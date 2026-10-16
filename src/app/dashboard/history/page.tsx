@@ -54,12 +54,5 @@ export default async function HistoryPage() {
     }
   }
 
-  return (
-    <HistoryView
-      workerId={worker.id}
-      userEmail={userData.email}
-      enabledFeatures={center?.enabledFeatures ?? []}
-      registroMeta={registroMeta}
-    />
-  );
+  return <HistoryView workerId={worker.id} registroMeta={registroMeta} />;
 }

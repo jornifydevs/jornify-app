@@ -5,13 +5,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Country } from "country-state-city";
 import { createClient } from "@/infrastructure/supabase/client";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Clock, Check, CheckCircle2, ArrowLeft } from "lucide-react";
+import { NativeSelect } from "@/components/ui/native-select";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { JornifyLogo } from "@/components/JornifyLogo";
+import { Check, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ALL_PLANS } from "@/core/domain/entities";
 import type { PlanId } from "@/core/domain/entities";
+import { cn } from "@/lib/utils";
 
 const ALL_COUNTRIES = Country.getAllCountries().sort((a, b) =>
   a.name.localeCompare(b.name)
@@ -19,23 +25,20 @@ const ALL_COUNTRIES = Country.getAllCountries().sort((a, b) =>
 
 type RegisterType = "worker" | "company";
 
-const inputClass =
-  "bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 dark:bg-slate-900/50 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500";
+const linkClass =
+  "inline-flex min-h-11 items-center rounded-sm font-medium text-brand-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
-const FEATURE_LABELS: Record<string, string> = {
-  profile: "Perfil de empleado",
-  payroll: "Gestión de nóminas",
-  vacation: "Control de vacaciones",
-  calendar: "Calendario laboral",
-  break: "Control de descansos",
-};
+const segmentClass =
+  "min-h-11 flex-1 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+const segmentActiveClass =
+  "bg-card text-foreground shadow-sm ring-1 ring-border";
+const segmentInactiveClass = "text-muted-foreground hover:text-foreground";
 
-const DAY_TYPE_LABELS: Record<string, string> = {
-  normal: "Días laborales normales",
-  holiday: "Festivos",
-  vacation: "Vacaciones",
-  sick_leave: "Baja médica",
-};
+const invalidInputClass =
+  "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20";
+
+const sectionLabelClass =
+  "border-b pb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground";
 
 export function RegisterForm() {
   const [registerType, setRegisterType] = useState<RegisterType>("worker");
@@ -231,618 +234,542 @@ export function RegisterForm() {
 
   if (success) {
     return (
-      <div className="flex flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-          <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm px-8 py-10 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700 text-center">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-green-600 rounded-2xl">
-                  <Clock className="w-12 h-12 text-white" />
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-                {t("success.title")}
-              </h2>
-              <p className="text-slate-700 dark:text-slate-300 mb-6">
-                {t.rich("success.message", {
-                  email: registerType === "worker" ? email : companyEmail,
-                  strong: (chunks) => <strong>{chunks}</strong>,
-                })}
-              </p>
-              <Link
-                href="/auth/login"
-                className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
-              >
-                {t("success.goToLogin")}
-              </Link>
+      <div className="flex flex-1 flex-col justify-center">
+        <div className="mx-auto w-full max-w-md px-5 py-12">
+          <Card className="p-6 text-center sm:p-8">
+            <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-live-soft text-live-text">
+              <Check className="size-8" aria-hidden="true" />
             </div>
-          </div>
+            <h1 className="mt-6 text-2xl font-semibold tracking-tight">
+              {t("success.title")}
+            </h1>
+            <p className="mt-3 break-words text-muted-foreground">
+              {t.rich("success.message", {
+                email: registerType === "worker" ? email : companyEmail,
+                strong: (chunks) => (
+                  <strong className="font-semibold text-foreground">
+                    {chunks}
+                  </strong>
+                ),
+              })}
+            </p>
+            <Button asChild variant="brand" size="lg" className="mt-8 w-full">
+              <Link href="/auth/login">{t("success.goToLogin")}</Link>
+            </Button>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/50">
-              <Clock className="w-12 h-12 text-white" />
-            </div>
-          </div>
-          <h2 className="text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+    <div className="flex flex-1 flex-col justify-center">
+      <div className="mx-auto w-full max-w-md px-5 py-12">
+        <div className="text-center">
+          <JornifyLogo size="lg" />
+          <h1 className="mt-8 text-3xl font-semibold tracking-tight">
             {t("title")}
-          </h2>
-          <p className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
-            {t("subtitle")}
-          </p>
+          </h1>
+          <p className="mt-2 text-muted-foreground">{t("subtitle")}</p>
         </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm px-8 py-10 shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700">
-            {/* Register type selector — only show on step 1 */}
-            {(registerType === "worker" || companyStep === 1) && (
-              <div className="flex gap-2 mb-6">
-                <Button
-                  type="button"
-                  onClick={() => handleTypeChange("worker")}
-                  className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                    registerType === "worker"
-                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30"
-                      : "bg-slate-200 hover:bg-slate-300 text-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
-                  }`}
-                >
-                  {t("worker")}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => handleTypeChange("company")}
-                  className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                    registerType === "company"
-                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30"
-                      : "bg-slate-200 hover:bg-slate-300 text-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300"
-                  }`}
-                >
-                  {t("company")}
-                </Button>
-              </div>
-            )}
-
-            {/* Plan selection step (company step 2) */}
-            {registerType === "company" && companyStep === 2 ? (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                    {t("planSelection.title")}
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    {t("planSelection.subtitle")}
-                  </p>
-                </div>
-
-                {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-                    <p className="text-sm text-red-400">{error}</p>
-                  </div>
+        <Card className="mt-8 p-6 sm:p-8">
+          {/* Register type selector — only show on step 1 */}
+          {(registerType === "worker" || companyStep === 1) && (
+            <div className="mb-6 flex gap-1 rounded-full bg-secondary p-1">
+              <button
+                type="button"
+                onClick={() => handleTypeChange("worker")}
+                aria-pressed={registerType === "worker"}
+                className={cn(
+                  segmentClass,
+                  registerType === "worker"
+                    ? segmentActiveClass
+                    : segmentInactiveClass
                 )}
+              >
+                {t("worker")}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTypeChange("company")}
+                aria-pressed={registerType === "company"}
+                className={cn(
+                  segmentClass,
+                  registerType === "company"
+                    ? segmentActiveClass
+                    : segmentInactiveClass
+                )}
+              >
+                {t("company")}
+              </button>
+            </div>
+          )}
 
-                <div className="space-y-4">
-                  {ALL_PLANS.map((plan) => (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      onClick={() => setSelectedPlan(plan.id)}
-                      className={`w-full text-left rounded-2xl border-2 p-5 transition-all duration-200 ${
-                        selectedPlan === plan.id
-                          ? "border-blue-500 bg-blue-500/10"
-                          : "border-slate-200 bg-white/50 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-slate-500"
-                      }`}
-                    >
-                      {/* Plan header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-bold text-slate-900 dark:text-white">
-                            {plan.name}
-                          </span>
-                          <span className="text-xs font-semibold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
-                            {plan.priceMonthly === 0
-                              ? t("planSelection.free")
-                              : `${(plan.priceMonthly / 100).toFixed(0)}${t("planSelection.perMonth")}`}
-                          </span>
-                        </div>
-                        <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            selectedPlan === plan.id
-                              ? "border-blue-500 bg-blue-500"
-                              : "border-slate-300 dark:border-slate-600"
-                          }`}
-                        >
-                          {selectedPlan === plan.id && (
-                            <Check className="w-3 h-3 text-white" />
-                          )}
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                        {plan.description}
-                      </p>
-
-                      {/* Features */}
-                      <div className="grid grid-cols-1 gap-1.5">
-                        {plan.enabledFeatures.map((feature) => (
-                          <div
-                            key={feature}
-                            className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                            <span>{FEATURE_LABELS[feature] ?? feature}</span>
-                          </div>
-                        ))}
-                        {plan.allowedDayTypes.map((dt) => (
-                          <div
-                            key={dt}
-                            className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                            <span>{DAY_TYPE_LABELS[dt] ?? dt}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => setCompanyStep(1)}
-                    disabled={loading}
-                    className="flex-1 py-5 rounded-xl font-semibold bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    {t("planSelection.back")}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={doRegister}
-                    disabled={loading}
-                    className="flex-1 py-5 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30"
-                  >
-                    {loading ? t("submitting") : t("submit")}
-                  </Button>
-                </div>
-
-                <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-                  {t("hasAccount")}{" "}
-                  <Link
-                    href="/auth/login"
-                    className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
-                  >
-                    {t("loginHere")}
-                  </Link>
+          {/* Plan selection step (company step 2) */}
+          {registerType === "company" && companyStep === 2 ? (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight">
+                  {t("planSelection.title")}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t("planSelection.subtitle")}
                 </p>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-                    <p className="text-sm text-red-400">{error}</p>
-                  </div>
-                )}
 
-                {/* Worker registration fields */}
-                {registerType === "worker" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="name"
-                        className="text-slate-800 dark:text-slate-200"
+              {error && <Alert variant="error">{error}</Alert>}
+
+              <div className="space-y-3">
+                {ALL_PLANS.map((plan) => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => setSelectedPlan(plan.id)}
+                    aria-pressed={selectedPlan === plan.id}
+                    className={cn(
+                      "w-full rounded-xl border p-5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      selectedPlan === plan.id
+                        ? "border-transparent bg-brand-soft ring-2 ring-ring"
+                        : "bg-card hover:bg-accent"
+                    )}
+                  >
+                    {/* Plan header */}
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="text-lg font-semibold">
+                          {plan.name}
+                        </span>
+                        <StatusBadge
+                          tone="neutral"
+                          size="sm"
+                          dot={false}
+                          className="tabular-nums"
+                        >
+                          {plan.priceMonthly === 0
+                            ? t("planSelection.free")
+                            : `${(plan.priceMonthly / 100).toFixed(0)}${t("planSelection.perMonth")}`}
+                        </StatusBadge>
+                      </div>
+                      <div
+                        aria-hidden="true"
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded-full border-2",
+                          selectedPlan === plan.id
+                            ? "border-brand bg-brand text-brand-foreground"
+                            : "border-border-strong"
+                        )}
                       >
-                        {t("name")}
-                      </Label>
-                      <Input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("namePlaceholder")}
-                      />
+                        {selectedPlan === plan.id && (
+                          <Check className="size-3" />
+                        )}
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="lastName"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("lastName")}
-                      </Label>
-                      <Input
-                        id="lastName"
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("lastNamePlaceholder")}
-                      />
-                    </div>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                      {plan.description}
+                    </p>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="dni"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("dni")}
-                      </Label>
-                      <Input
-                        id="dni"
-                        type="text"
-                        value={dni}
-                        onChange={(e) => setDni(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("dniPlaceholder")}
-                      />
+                    {/* Features */}
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {plan.enabledFeatures.map((feature) => (
+                        <div
+                          key={feature}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <CheckCircle2
+                            className="size-4 shrink-0 text-live-text"
+                            aria-hidden="true"
+                          />
+                          <span>{t(`planSelection.features.${feature}`)}</span>
+                        </div>
+                      ))}
+                      {plan.allowedDayTypes.map((dt) => (
+                        <div
+                          key={dt}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          <CheckCircle2
+                            className="size-4 shrink-0 text-live-text"
+                            aria-hidden="true"
+                          />
+                          <span>{t(`planSelection.dayTypes.${dt}`)}</span>
+                        </div>
+                      ))}
                     </div>
+                  </button>
+                ))}
+              </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="phone"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("phone")}
-                      </Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("phonePlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="email"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("email")}
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setEmailError(null);
-                        }}
-                        onBlur={() => checkEmailAvailability(email, "worker")}
-                        required
-                        className={`${inputClass} ${emailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                        placeholder={t("emailPlaceholder")}
-                      />
-                      {emailError && (
-                        <p className="text-xs text-red-400">{emailError}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="password"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("password")}
-                      </Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className={inputClass}
-                        placeholder={t("passwordPlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="confirmPassword"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("confirmPassword")}
-                      </Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className={inputClass}
-                        placeholder={t("confirmPasswordPlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyCode"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("companyCode")}
-                      </Label>
-                      <Input
-                        id="companyCode"
-                        type="text"
-                        value={companyCode}
-                        onChange={(e) =>
-                          setCompanyCode(e.target.value.toUpperCase())
-                        }
-                        required
-                        className={inputClass}
-                        placeholder={t("companyCodePlaceholder")}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Company registration fields (step 1) */}
-                {registerType === "company" && (
-                  <>
-                    <div className="pb-2 border-b border-slate-200 dark:border-slate-700">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium">
-                        {t("responsibleSection")}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="adminName"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("adminName")}
-                      </Label>
-                      <Input
-                        id="adminName"
-                        type="text"
-                        value={adminName}
-                        onChange={(e) => setAdminName(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("namePlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="adminLastName"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("adminLastName")}
-                      </Label>
-                      <Input
-                        id="adminLastName"
-                        type="text"
-                        value={adminLastName}
-                        onChange={(e) => setAdminLastName(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("lastNamePlaceholder")}
-                      />
-                    </div>
-
-                    <div className="pb-2 border-b border-slate-200 dark:border-slate-700">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium">
-                        {t("companyDataSection")}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyNif"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("companyNif")}
-                      </Label>
-                      <Input
-                        id="companyNif"
-                        type="text"
-                        value={companyNif}
-                        onChange={(e) => {
-                          setCompanyNif(e.target.value);
-                          setCompanyNifError(null);
-                        }}
-                        onBlur={() => checkNifAvailability(companyNif)}
-                        required
-                        className={`${inputClass} ${companyNifError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                        placeholder={t("companyNifPlaceholder")}
-                      />
-                      {companyNifError && (
-                        <p className="text-xs text-red-400">
-                          {companyNifError}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyName"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("companyName")}
-                      </Label>
-                      <Input
-                        id="companyName"
-                        type="text"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("companyNamePlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyTradeName"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("companyTradeName")}
-                      </Label>
-                      <Input
-                        id="companyTradeName"
-                        type="text"
-                        value={companyTradeName}
-                        onChange={(e) => setCompanyTradeName(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("companyTradeNamePlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyEmail"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("companyEmail")}
-                      </Label>
-                      <Input
-                        id="companyEmail"
-                        type="email"
-                        value={companyEmail}
-                        onChange={(e) => {
-                          setCompanyEmail(e.target.value);
-                          setCompanyEmailError(null);
-                        }}
-                        onBlur={() =>
-                          checkEmailAvailability(companyEmail, "company")
-                        }
-                        required
-                        className={`${inputClass} ${companyEmailError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
-                        placeholder={t("companyEmailPlaceholder")}
-                      />
-                      {companyEmailError && (
-                        <p className="text-xs text-red-400">
-                          {companyEmailError}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyAddress"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("companyAddress")}
-                      </Label>
-                      <Input
-                        id="companyAddress"
-                        type="text"
-                        value={companyAddress}
-                        onChange={(e) => setCompanyAddress(e.target.value)}
-                        required
-                        className={inputClass}
-                        placeholder={t("companyAddressPlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyNationality"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("country")}
-                      </Label>
-                      <select
-                        id="companyNationality"
-                        value={companyNationality}
-                        onChange={(e) => setCompanyNationality(e.target.value)}
-                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white dark:[&>option]:bg-slate-800"
-                      >
-                        {ALL_COUNTRIES.map((c) => (
-                          <option key={c.isoCode} value={c.isoCode}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyPassword"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("password")}
-                      </Label>
-                      <Input
-                        id="companyPassword"
-                        type="password"
-                        value={companyPassword}
-                        onChange={(e) => setCompanyPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className={inputClass}
-                        placeholder={t("passwordPlaceholder")}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="companyConfirmPassword"
-                        className="text-slate-800 dark:text-slate-200"
-                      >
-                        {t("confirmPassword")}
-                      </Label>
-                      <Input
-                        id="companyConfirmPassword"
-                        type="password"
-                        value={companyConfirmPassword}
-                        onChange={(e) =>
-                          setCompanyConfirmPassword(e.target.value)
-                        }
-                        required
-                        minLength={6}
-                        className={inputClass}
-                        placeholder={t("confirmPasswordPlaceholder")}
-                      />
-                    </div>
-                  </>
-                )}
-
+              <div className="flex flex-col gap-3">
                 <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-6 rounded-xl shadow-lg shadow-blue-500/30 transition-all duration-200"
+                  type="button"
+                  variant="brand"
+                  size="lg"
+                  className="w-full"
+                  onClick={doRegister}
                   disabled={loading}
                 >
-                  {loading
-                    ? t("processing")
-                    : registerType === "company"
-                      ? t("continueButton")
-                      : t("submit")}
+                  {loading ? t("submitting") : t("submit")}
                 </Button>
-              </form>
-            )}
-
-            {/* Login link — only shown in form step, not plan step (plan step has its own) */}
-            {!(registerType === "company" && companyStep === 2) && (
-              <p className="text-center text-sm pt-6 text-slate-400">
-                {t("hasAccount")}{" "}
-                <Link
-                  href="/auth/login"
-                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setCompanyStep(1)}
+                  disabled={loading}
                 >
+                  <ArrowLeft />
+                  {t("planSelection.back")}
+                </Button>
+              </div>
+
+              <p className="text-center text-sm text-muted-foreground">
+                {t("hasAccount")}{" "}
+                <Link href="/auth/login" className={linkClass}>
                   {t("loginHere")}
                 </Link>
               </p>
-            )}
-          </div>
-        </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {error && <Alert variant="error">{error}</Alert>}
+
+              {/* Worker registration fields */}
+              {registerType === "worker" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">{t("name")}</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      placeholder={t("namePlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">{t("lastName")}</Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      required
+                      placeholder={t("lastNamePlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dni">{t("dni")}</Label>
+                    <Input
+                      id="dni"
+                      type="text"
+                      value={dni}
+                      onChange={(e) => setDni(e.target.value)}
+                      required
+                      placeholder={t("dniPlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">{t("phone")}</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      placeholder={t("phonePlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t("email")}</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setEmailError(null);
+                      }}
+                      onBlur={() => checkEmailAvailability(email, "worker")}
+                      required
+                      aria-invalid={!!emailError}
+                      aria-describedby={emailError ? "email-error" : undefined}
+                      className={emailError ? invalidInputClass : undefined}
+                      placeholder={t("emailPlaceholder")}
+                    />
+                    {emailError && (
+                      <p
+                        id="email-error"
+                        role="alert"
+                        className="text-sm text-alert-text"
+                      >
+                        {emailError}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">{t("password")}</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      placeholder={t("passwordPlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">
+                      {t("confirmPassword")}
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      placeholder={t("confirmPasswordPlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyCode">{t("companyCode")}</Label>
+                    <Input
+                      id="companyCode"
+                      type="text"
+                      value={companyCode}
+                      onChange={(e) =>
+                        setCompanyCode(e.target.value.toUpperCase())
+                      }
+                      required
+                      placeholder={t("companyCodePlaceholder")}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Company registration fields (step 1) */}
+              {registerType === "company" && (
+                <>
+                  <p className={sectionLabelClass}>{t("responsibleSection")}</p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="adminName">{t("adminName")}</Label>
+                    <Input
+                      id="adminName"
+                      type="text"
+                      value={adminName}
+                      onChange={(e) => setAdminName(e.target.value)}
+                      required
+                      placeholder={t("namePlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="adminLastName">{t("adminLastName")}</Label>
+                    <Input
+                      id="adminLastName"
+                      type="text"
+                      value={adminLastName}
+                      onChange={(e) => setAdminLastName(e.target.value)}
+                      required
+                      placeholder={t("lastNamePlaceholder")}
+                    />
+                  </div>
+
+                  <p className={cn(sectionLabelClass, "pt-3")}>
+                    {t("companyDataSection")}
+                  </p>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyNif">{t("companyNif")}</Label>
+                    <Input
+                      id="companyNif"
+                      type="text"
+                      value={companyNif}
+                      onChange={(e) => {
+                        setCompanyNif(e.target.value);
+                        setCompanyNifError(null);
+                      }}
+                      onBlur={() => checkNifAvailability(companyNif)}
+                      required
+                      aria-invalid={!!companyNifError}
+                      aria-describedby={
+                        companyNifError ? "companyNif-error" : undefined
+                      }
+                      className={
+                        companyNifError ? invalidInputClass : undefined
+                      }
+                      placeholder={t("companyNifPlaceholder")}
+                    />
+                    {companyNifError && (
+                      <p
+                        id="companyNif-error"
+                        role="alert"
+                        className="text-sm text-alert-text"
+                      >
+                        {companyNifError}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">{t("companyName")}</Label>
+                    <Input
+                      id="companyName"
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      required
+                      placeholder={t("companyNamePlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyTradeName">
+                      {t("companyTradeName")}
+                    </Label>
+                    <Input
+                      id="companyTradeName"
+                      type="text"
+                      value={companyTradeName}
+                      onChange={(e) => setCompanyTradeName(e.target.value)}
+                      required
+                      placeholder={t("companyTradeNamePlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyEmail">{t("companyEmail")}</Label>
+                    <Input
+                      id="companyEmail"
+                      type="email"
+                      value={companyEmail}
+                      onChange={(e) => {
+                        setCompanyEmail(e.target.value);
+                        setCompanyEmailError(null);
+                      }}
+                      onBlur={() =>
+                        checkEmailAvailability(companyEmail, "company")
+                      }
+                      required
+                      aria-invalid={!!companyEmailError}
+                      aria-describedby={
+                        companyEmailError ? "companyEmail-error" : undefined
+                      }
+                      className={
+                        companyEmailError ? invalidInputClass : undefined
+                      }
+                      placeholder={t("companyEmailPlaceholder")}
+                    />
+                    {companyEmailError && (
+                      <p
+                        id="companyEmail-error"
+                        role="alert"
+                        className="text-sm text-alert-text"
+                      >
+                        {companyEmailError}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyAddress">
+                      {t("companyAddress")}
+                    </Label>
+                    <Input
+                      id="companyAddress"
+                      type="text"
+                      value={companyAddress}
+                      onChange={(e) => setCompanyAddress(e.target.value)}
+                      required
+                      placeholder={t("companyAddressPlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyNationality">{t("country")}</Label>
+                    <NativeSelect
+                      id="companyNationality"
+                      value={companyNationality}
+                      onChange={(e) => setCompanyNationality(e.target.value)}
+                    >
+                      {ALL_COUNTRIES.map((c) => (
+                        <option key={c.isoCode} value={c.isoCode}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyPassword">{t("password")}</Label>
+                    <Input
+                      id="companyPassword"
+                      type="password"
+                      value={companyPassword}
+                      onChange={(e) => setCompanyPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      placeholder={t("passwordPlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="companyConfirmPassword">
+                      {t("confirmPassword")}
+                    </Label>
+                    <Input
+                      id="companyConfirmPassword"
+                      type="password"
+                      value={companyConfirmPassword}
+                      onChange={(e) =>
+                        setCompanyConfirmPassword(e.target.value)
+                      }
+                      required
+                      minLength={6}
+                      placeholder={t("confirmPasswordPlaceholder")}
+                    />
+                  </div>
+                </>
+              )}
+
+              <Button
+                type="submit"
+                variant="brand"
+                size="lg"
+                className="w-full"
+                disabled={loading}
+              >
+                {loading
+                  ? t("processing")
+                  : registerType === "company"
+                    ? t("continueButton")
+                    : t("submit")}
+              </Button>
+            </form>
+          )}
+
+          {/* Login link — only shown in form step, not plan step (plan step has its own) */}
+          {!(registerType === "company" && companyStep === 2) && (
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              {t("hasAccount")}{" "}
+              <Link href="/auth/login" className={linkClass}>
+                {t("loginHere")}
+              </Link>
+            </p>
+          )}
+        </Card>
       </div>
     </div>
   );

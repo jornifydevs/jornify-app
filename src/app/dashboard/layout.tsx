@@ -1,6 +1,11 @@
 import { createClient } from "@/infrastructure/supabase/server";
 import { cookies } from "next/headers";
-import { CompanyProvider } from "./_context/company-context";
+import { SupabaseUserRepository } from "@/infrastructure/supabase/repositories/supabase-user.repository";
+import { SupabaseWorkerRepository } from "@/infrastructure/supabase/repositories/supabase-worker.repository";
+import { SupabaseCenterRepository } from "@/infrastructure/supabase/repositories/supabase-center.repository";
+import { SupabaseCompanyRepository } from "@/infrastructure/supabase/repositories/supabase-company.repository";
+import { AdminShell } from "./_components/AdminShell";
+import { WorkerTabBar } from "./_components/WorkerTabBar";
 
 export default async function DashboardLayout({
   children,
@@ -14,32 +19,44 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let companyLogo: string | undefined;
+  // Pages handle the redirects; accounts that are not set up yet get no shell.
+  if (!user?.email) return children;
 
-  if (user) {
-    const { data: userData } = await supabase
-      .from("users")
-      .select("company_id")
-      .eq("email", user.email!)
-      .single();
+  const profile = await new SupabaseUserRepository(supabase).findByEmail(
+    user.email
+  );
+  if (!profile) return children;
 
-    if (userData?.company_id) {
-      const { data: company } = await supabase
-        .from("company")
-        .select("logo")
-        .eq("id", userData.company_id)
-        .single();
+  if (profile.role === "admin" && profile.companyId) {
+    const company = await new SupabaseCompanyRepository(supabase).findById(
+      profile.companyId
+    );
+    return (
+      <AdminShell
+        companyName={company?.name ?? ""}
+        userName={`${profile.name} ${profile.lastName}`}
+      >
+        {children}
+      </AdminShell>
+    );
+  }
 
-      if (company?.logo) {
-        const { data: urlData } = supabase.storage
-          .from("Avatars")
-          .getPublicUrl(company.logo);
-        companyLogo = urlData.publicUrl;
-      }
+  if (profile.role === "worker") {
+    const worker = await new SupabaseWorkerRepository(supabase).findByUserId(
+      profile.id
+    );
+    if (worker) {
+      const center = await new SupabaseCenterRepository(supabase).findById(
+        worker.centerId
+      );
+      return (
+        <div className="flex flex-1 flex-col pb-28">
+          {children}
+          <WorkerTabBar enabledFeatures={center?.enabledFeatures ?? []} />
+        </div>
+      );
     }
   }
 
-  return (
-    <CompanyProvider companyLogo={companyLogo}>{children}</CompanyProvider>
-  );
+  return children;
 }
