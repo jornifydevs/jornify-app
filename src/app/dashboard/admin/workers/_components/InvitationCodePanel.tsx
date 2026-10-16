@@ -2,24 +2,20 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Key,
-  Plus,
-  Copy,
-  Check,
-  Clock,
-  CheckCircle,
-  ChevronDown,
-  Trash2,
-} from "lucide-react";
+import { Key, Plus, Copy, Check, ChevronDown, Trash2 } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { cn } from "@/lib/utils";
 import type { InvitationCode } from "@/core/domain/entities";
 
 interface InvitationCodePanelProps {
   initialCodes: InvitationCode[];
 }
 
-function StatusBadge({
+function CodeStatusBadge({
   status,
   expiresAt,
 }: {
@@ -31,25 +27,22 @@ function StatusBadge({
 
   if (status === "used") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
-        <CheckCircle className="w-3 h-3" />
+      <StatusBadge tone="neutral" size="sm">
         {t("statusUsed")}
-      </span>
+      </StatusBadge>
     );
   }
   if (expired) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/40 text-red-400">
-        <Clock className="w-3 h-3" />
+      <StatusBadge tone="alert" size="sm">
         {t("statusExpired")}
-      </span>
+      </StatusBadge>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/40 text-green-400">
-      <Clock className="w-3 h-3" />
+    <StatusBadge tone="live" size="sm">
       {t("statusPending")}
-    </span>
+    </StatusBadge>
   );
 }
 
@@ -64,17 +57,17 @@ function CopyButton({ code }: { code: string }) {
   };
 
   return (
-    <button
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
       onClick={handleCopy}
-      className="flex items-center justify-center w-7 h-7 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-500 hover:text-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-400 dark:hover:text-white transition-colors"
+      aria-label={t("copyCode")}
       title={t("copyCode")}
+      className="sm:size-9"
     >
-      {copied ? (
-        <Check className="w-3.5 h-3.5 text-green-400" />
-      ) : (
-        <Copy className="w-3.5 h-3.5" />
-      )}
-    </button>
+      {copied ? <Check className="text-live-text" /> : <Copy />}
+    </Button>
   );
 }
 
@@ -144,38 +137,55 @@ export default function InvitationCodePanel({
   ).length;
 
   return (
-    <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       {/* Panel header */}
       <button
         type="button"
         onClick={() => setCollapsed((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition-colors"
+        aria-expanded={!collapsed}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"
       >
-        <div className="flex items-center gap-2">
-          <Key className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-slate-900 dark:text-white">
-            {t("title")}
+        <span className="flex min-w-0 items-center gap-3">
+          <Key
+            aria-hidden="true"
+            className="size-5 shrink-0 text-muted-foreground"
+          />
+          <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-semibold">{t("title")}</span>
+            {pendingCount > 0 && (
+              <StatusBadge
+                tone="neutral"
+                size="sm"
+                dot={false}
+                className="tabular-nums"
+              >
+                {t("pendingCount", { count: pendingCount })}
+              </StatusBadge>
+            )}
           </span>
-          {pendingCount > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-600/30 text-blue-300">
-              {pendingCount} {t("statusPending").toLowerCase()}
-            </span>
-          )}
-        </div>
+        </span>
         <ChevronDown
-          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${collapsed ? "-rotate-90" : ""}`}
+          aria-hidden="true"
+          className={cn(
+            "size-5 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none",
+            collapsed && "-rotate-90"
+          )}
         />
       </button>
 
       {!collapsed && (
-        <>
+        <div className="border-t">
           {/* Generate button */}
-          <div className="flex items-center justify-end gap-2 px-4 py-2 border-b border-slate-200/60 dark:border-slate-700/60">
-            <div className="flex items-center gap-1.5">
-              <label className="text-xs text-slate-500 dark:text-slate-400 shrink-0">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-b px-4 py-3 sm:px-5">
+            <div className="flex items-center gap-2">
+              <Label
+                htmlFor="invitation-code-quantity"
+                className="shrink-0 text-muted-foreground"
+              >
                 {t("quantity")}
-              </label>
-              <input
+              </Label>
+              <Input
+                id="invitation-code-quantity"
                 type="number"
                 min={1}
                 max={20}
@@ -187,16 +197,15 @@ export default function InvitationCodePanel({
                   );
                   setQuantity(v);
                 }}
-                className="w-14 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 text-center focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900/50 dark:text-white"
+                className="h-11 w-20 px-2 text-center tabular-nums"
               />
             </div>
             <Button
+              type="button"
               onClick={handleGenerate}
               disabled={generating}
-              size="sm"
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg h-8 px-3"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus />
               {generating
                 ? t("generating")
                 : quantity > 1
@@ -207,56 +216,63 @@ export default function InvitationCodePanel({
 
           {/* Error */}
           {error && (
-            <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/20">
-              <p className="text-xs text-red-400">{error}</p>
-            </div>
+            <Alert variant="error" className="rounded-none border-b sm:px-5">
+              {error}
+            </Alert>
           )}
 
           {/* Codes list — only shows unused codes */}
           {codes.filter((c) => c.status !== "used").length === 0 ? (
-            <div className="px-4 py-5 text-center text-slate-500 text-sm">
+            <p className="px-4 py-6 text-center text-sm text-muted-foreground sm:px-5">
               {t("noActiveCodes")}
-            </div>
+            </p>
           ) : (
-            <div className="divide-y divide-slate-200/60 dark:divide-slate-700/60">
+            <ul className="divide-y">
               {codes
                 .filter((c) => c.status !== "used")
                 .map((c) => (
-                  <div
+                  <li
                     key={c.id}
-                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700/20"
+                    className="flex items-center gap-3 px-4 py-2 sm:px-5"
                   >
-                    <span className="font-mono text-sm text-slate-900 dark:text-white flex-1 min-w-0 truncate">
-                      {c.code}
-                    </span>
-                    <StatusBadge status={c.status} expiresAt={c.expiresAt} />
-                    <span className="text-xs text-slate-500 hidden sm:block shrink-0">
-                      {formatExpiry(c.expiresAt)}
-                    </span>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="min-w-0 truncate font-mono text-sm font-medium sm:flex-1">
+                        {c.code}
+                      </span>
+                      <CodeStatusBadge
+                        status={c.status}
+                        expiresAt={c.expiresAt}
+                      />
+                      <span className="hidden shrink-0 text-xs text-muted-foreground tabular-nums sm:block">
+                        {formatExpiry(c.expiresAt)}
+                      </span>
+                    </div>
                     {c.status === "pending" && (
-                      <>
+                      <div className="flex shrink-0 items-center gap-1">
                         <CopyButton code={c.code} />
-                        <button
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleDelete(c.id)}
                           disabled={deletingId === c.id}
-                          className="flex items-center justify-center w-7 h-7 rounded-md bg-slate-200 hover:bg-red-100 text-slate-500 hover:text-red-500 dark:bg-slate-700 dark:hover:bg-red-900/60 dark:text-slate-400 dark:hover:text-red-400 transition-colors disabled:opacity-50"
+                          aria-label={t("deleteCode")}
                           title={t("deleteCode")}
+                          className="text-muted-foreground hover:bg-alert-soft hover:text-alert-text sm:size-9"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </>
+                          <Trash2 />
+                        </Button>
+                      </div>
                     )}
-                  </div>
+                  </li>
                 ))}
-            </div>
+            </ul>
           )}
 
-          <div className="px-4 py-2 border-t border-slate-200/60 dark:border-slate-700/60">
-            <p className="text-xs text-slate-400 dark:text-slate-600">
-              {t("info")}
-            </p>
-          </div>
-        </>
+          <p className="border-t px-4 py-3 text-xs text-muted-foreground sm:px-5">
+            {t("info")}
+          </p>
+        </div>
       )}
     </div>
   );

@@ -16,12 +16,17 @@ import {
   UserPlus,
   FileSpreadsheet,
   CheckCircle2,
-  AlertCircle,
   Download,
+  Loader2,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   Table,
   TableBody,
@@ -30,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import type { WorkerWithUser } from "@/core/application/dtos/admin-workers.dto";
 import type { InvitationCode, User, Center } from "@/core/domain/entities";
 import InvitationCodePanel from "./InvitationCodePanel";
@@ -45,11 +51,13 @@ interface WorkerListViewProps {
 function Checkbox({
   checked,
   indeterminate,
+  label,
   onChange,
   onClick,
 }: {
   checked: boolean;
   indeterminate?: boolean;
+  label: string;
   onChange: () => void;
   onClick?: (e: React.MouseEvent) => void;
 }) {
@@ -59,34 +67,36 @@ function Checkbox({
       type="button"
       role="checkbox"
       aria-checked={indeterminate ? "mixed" : checked}
+      aria-label={label}
       onClick={(e) => {
         onClick?.(e);
         onChange();
       }}
-      className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-all cursor-pointer ${
-        active
-          ? "bg-blue-600 border-blue-600"
-          : "bg-white dark:bg-slate-700/80 border-slate-300 dark:border-slate-500 hover:border-slate-400 dark:hover:border-slate-400"
-      }`}
+      className="group/checkbox -m-3 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg focus-visible:outline-none md:-m-2 md:size-8"
     >
-      {indeterminate && !checked ? (
-        <span className="block w-2 h-px bg-white rounded-full" />
-      ) : checked ? (
-        <svg
-          className="w-2.5 h-2.5 text-white"
-          viewBox="0 0 10 10"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            d="M1.5 5l2.5 2.5 4.5-5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ) : null}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex size-[18px] items-center justify-center rounded-[5px] border transition-colors group-focus-visible/checkbox:ring-2 group-focus-visible/checkbox:ring-ring group-focus-visible/checkbox:ring-offset-2 group-focus-visible/checkbox:ring-offset-background",
+          active
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-input bg-card group-hover/checkbox:border-foreground"
+        )}
+      >
+        {indeterminate && !checked ? (
+          <span className="block h-0.5 w-2 rounded-full bg-current" />
+        ) : checked ? (
+          <svg className="size-3" viewBox="0 0 10 10" fill="none">
+            <path
+              d="M1.5 5l2.5 2.5 4.5-5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : null}
+      </span>
     </button>
   );
 }
@@ -324,29 +334,32 @@ export default function WorkerListView({
       const phone = String(row["Teléfono"] ?? row["Telefono"] ?? "").trim();
 
       const errors: string[] = [];
-      if (!name) errors.push("Nombre vacío");
-      if (!lastName) errors.push("Apellidos vacíos");
-      if (!email) errors.push("Email vacío");
+      if (!name) errors.push(t("importErrors.nameEmpty"));
+      if (!lastName) errors.push(t("importErrors.lastNameEmpty"));
+      if (!email) errors.push(t("importErrors.emailEmpty"));
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-        errors.push("Email inválido");
+        errors.push(t("importErrors.emailInvalid"));
 
       // Center is optional — empty means unassigned
       const matchedCenter = centerName
         ? centers.find((c) => c.name.toLowerCase() === centerName.toLowerCase())
         : undefined;
       if (centerName && !matchedCenter)
-        errors.push(`Centro "${centerName}" no encontrado`);
+        errors.push(t("importErrors.centerNotFound", { center: centerName }));
 
       // DNI and job are only required when a center is assigned
       if (centerName) {
-        if (!dni) errors.push("DNI vacío");
-        if (!job) errors.push("Puesto vacío");
+        if (!dni) errors.push(t("importErrors.dniEmpty"));
+        if (!job) errors.push(t("importErrors.jobEmpty"));
       }
 
       let contractType = "full_time";
       if (contractRaw) {
         const normalized = CONTRACT_MAP[contractRaw];
-        if (!normalized) errors.push(`Tipo contrato "${contractRaw}" inválido`);
+        if (!normalized)
+          errors.push(
+            t("importErrors.contractInvalid", { contract: contractRaw })
+          );
         else contractType = normalized;
       }
 
@@ -354,7 +367,7 @@ export default function WorkerListView({
       if (hourWeekRaw) {
         const n = Number(hourWeekRaw);
         if (isNaN(n) || n < 1 || n > 168)
-          errors.push("Horas/semana inválidas (1-168)");
+          errors.push(t("importErrors.hourWeekInvalid"));
         else hourWeek = n;
       }
 
@@ -427,7 +440,13 @@ export default function WorkerListView({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setExcelError(`Fila ${i + 1} (${r.email}): ${data.error ?? "Error"}`);
+        setExcelError(
+          t("importRowError", {
+            row: i + 1,
+            email: r.email,
+            error: data.error ?? tc("error"),
+          })
+        );
         setExcelImporting(false);
         return;
       }
@@ -494,12 +513,15 @@ export default function WorkerListView({
   const SortIcon = ({ column }: { column: SortKey }) => {
     if (sortKey !== column)
       return (
-        <ChevronsUpDown className="w-3 h-3 opacity-40 group-hover:opacity-80 transition-opacity" />
+        <ChevronsUpDown
+          aria-hidden="true"
+          className="size-3.5 opacity-40 transition-opacity group-hover/sort:opacity-80"
+        />
       );
     return sortDir === "asc" ? (
-      <ChevronUp className="w-3 h-3 text-blue-400" />
+      <ChevronUp aria-hidden="true" className="size-3.5" />
     ) : (
-      <ChevronDown className="w-3 h-3 text-blue-400" />
+      <ChevronDown aria-hidden="true" className="size-3.5" />
     );
   };
 
@@ -507,16 +529,31 @@ export default function WorkerListView({
     label,
     column,
     className,
+    align = "start",
   }: {
     label: string;
     column: SortKey;
     className?: string;
+    align?: "start" | "end";
   }) => (
-    <TableHead className={className}>
+    <TableHead
+      className={className}
+      aria-sort={
+        sortKey === column
+          ? sortDir === "asc"
+            ? "ascending"
+            : "descending"
+          : undefined
+      }
+    >
       <button
         type="button"
         onClick={() => handleSort(column)}
-        className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors group select-none"
+        className={cn(
+          "group/sort -mx-1 flex select-none items-center gap-1 rounded-md px-1 py-0.5 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          sortKey === column && "text-foreground",
+          align === "end" && "ml-auto"
+        )}
       >
         {label}
         <SortIcon column={column} />
@@ -530,60 +567,64 @@ export default function WorkerListView({
         <PageHeader
           title={t("title")}
           description={t("registeredCount", { count: workers.length })}
+          actions={
+            <>
+              <Button
+                type="button"
+                onClick={() => {
+                  setManualForm(BLANK_MANUAL);
+                  setManualError("");
+                  setAddModal("manual");
+                }}
+              >
+                <UserPlus />
+                {t("addWorker")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setExcelRows([]);
+                  setExcelError("");
+                  setAddModal("excel");
+                }}
+              >
+                <FileSpreadsheet />
+                {t("importExcel")}
+              </Button>
+            </>
+          }
         />
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         <InvitationCodePanel initialCodes={initialCodes} />
         <UnassignedWorkerPanel
           unassignedWorkers={unassignedWorkers}
           centers={centers}
         />
 
-        {/* Add worker buttons */}
-        <div className="flex flex-wrap gap-3 justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              setManualForm(BLANK_MANUAL);
-              setManualError("");
-              setAddModal("manual");
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
-          >
-            <UserPlus className="w-4 h-4" />
-            {t("addWorker")}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setExcelRows([]);
-              setExcelError("");
-              setAddModal("excel");
-            }}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-colors"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            {t("importExcel")}
-          </button>
-        </div>
-
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
+              aria-label={tc("search")}
               placeholder={t("searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              className="pl-11"
             />
           </div>
-          <select
+          <NativeSelect
+            aria-label={t("colCenter")}
             value={centerFilter}
             onChange={(e) => setCenterFilter(e.target.value)}
-            className="sm:w-56 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/50 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-500 [&>option]:bg-white dark:[&>option]:bg-slate-800"
+            className="sm:w-56"
           >
             <option value="">{t("allCenters")}</option>
             {centers.map((c) => (
@@ -591,108 +632,129 @@ export default function WorkerListView({
                 {c.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
 
         {/* Bulk action bar */}
         {selectedIds.size > 0 && (
-          <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-blue-900/40 border border-blue-700/50 rounded-xl">
-            <span className="text-sm font-medium text-blue-300">
-              {selectedIds.size} seleccionado{selectedIds.size !== 1 ? "s" : ""}
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-secondary px-4 py-3">
+            <span className="text-sm font-medium tabular-nums">
+              {t("selectedCount", { count: selectedIds.size })}
             </span>
-            <div className="flex items-center gap-2 ml-auto">
-              <button
+            <div className="ml-auto flex items-center gap-2">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => {
                   setBulkError("");
                   setBulkTargetCenter("");
                   setBulkModal("move");
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
+                aria-label={t("changeCenter")}
+                className="w-11 px-0 sm:w-auto sm:px-5"
               >
-                <ArrowRightLeft className="w-4 h-4" />
+                <ArrowRightLeft />
                 <span className="hidden sm:inline">{t("changeCenter")}</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="destructive"
                 onClick={() => {
                   setBulkError("");
                   setBulkModal("delete");
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-red-700 hover:bg-red-600 text-white rounded-lg transition-colors"
+                aria-label={t("delete")}
+                className="w-11 px-0 sm:w-auto sm:px-5"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 />
                 <span className="hidden sm:inline">{t("delete")}</span>
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={clearSelection}
-                className="flex items-center justify-center w-8 h-8 bg-slate-200 hover:bg-slate-300 text-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-300 rounded-lg transition-colors"
+                aria-label={t("clearSelection")}
                 title={t("clearSelection")}
               >
-                <X className="w-4 h-4" />
-              </button>
+                <X />
+              </Button>
             </div>
           </div>
         )}
 
         {/* Table */}
-        <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
           {filtered.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-              <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>{t("noWorkersFound")}</p>
+            <div className="px-4 py-12 text-center">
+              <Users
+                aria-hidden="true"
+                className="mx-auto mb-3 size-10 text-muted-foreground"
+              />
+              <p className="font-medium">{t("noWorkersFound")}</p>
             </div>
           ) : (
             <>
               {/* Mobile cards */}
-              <div className="block md:hidden divide-y divide-slate-200 dark:divide-slate-700">
+              <ul className="divide-y md:hidden">
                 {filtered.map((w) => (
-                  <div
+                  <li
                     key={w.worker.id}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent"
                   >
                     <Checkbox
                       checked={selectedIds.has(w.worker.id)}
+                      label={t("selectWorker", {
+                        name: `${w.userName} ${w.userLastName}`,
+                      })}
                       onChange={() => toggleSelect(w.worker.id)}
                       onClick={(e) => e.stopPropagation()}
                     />
                     <Link
                       href={`/dashboard/admin/workers/${w.worker.id}`}
-                      className="flex-1 min-w-0"
+                      className="min-w-0 flex-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-slate-900 dark:text-white truncate">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span className="truncate font-medium">
                           {w.userName} {w.userLastName}
                         </span>
-                        <Eye className="w-4 h-4 text-slate-400 shrink-0 ml-2" />
+                        <Eye
+                          aria-hidden="true"
+                          className="size-4 shrink-0 text-muted-foreground"
+                        />
                       </div>
-                      <div className="space-y-0.5 text-sm text-slate-500 dark:text-slate-400">
+                      <div className="space-y-1 text-sm text-muted-foreground">
                         <p className="truncate">{w.userEmail}</p>
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate">{w.centerName}</span>
-                          <span className="shrink-0">
+                          <StatusBadge
+                            tone="neutral"
+                            size="sm"
+                            dot={false}
+                            className="shrink-0"
+                          >
                             {contractLabels[w.worker.contractType] ??
                               w.worker.contractType}
-                          </span>
+                          </StatusBadge>
                         </div>
                       </div>
                     </Link>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
 
               {/* Desktop table */}
               <div className="hidden md:block">
                 <Table>
-                  <TableHeader>
-                    <TableRow className="border-slate-200 dark:border-slate-700 hover:bg-transparent">
-                      <TableHead className="w-10">
+                  <TableHeader className="bg-secondary">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="w-12 pl-4">
                         <Checkbox
                           checked={allFilteredSelected}
                           indeterminate={
                             someFilteredSelected && !allFilteredSelected
                           }
+                          label={t("selectAll")}
                           onChange={toggleSelectAll}
                         />
                       </TableHead>
@@ -704,57 +766,64 @@ export default function WorkerListView({
                         label={t("colContract")}
                         column="contract"
                       />
-                      <TableHead>
-                        <button
-                          type="button"
-                          onClick={() => handleSort("hourWeek")}
-                          className="flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors group select-none ml-auto"
-                        >
-                          {t("colHourWeek")}
-                          <SortIcon column="hourWeek" />
-                        </button>
-                      </TableHead>
-                      <TableHead className="w-12" />
+                      <SortableHead
+                        label={t("colHourWeek")}
+                        column="hourWeek"
+                        className="text-right"
+                        align="end"
+                      />
+                      <TableHead className="w-14 pr-4" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.map((w) => (
-                      <TableRow
-                        key={w.worker.id}
-                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30"
-                      >
-                        <TableCell>
+                      <TableRow key={w.worker.id}>
+                        <TableCell className="pl-4">
                           <Checkbox
                             checked={selectedIds.has(w.worker.id)}
+                            label={t("selectWorker", {
+                              name: `${w.userName} ${w.userLastName}`,
+                            })}
                             onChange={() => toggleSelect(w.worker.id)}
                           />
                         </TableCell>
-                        <TableCell className="text-slate-900 dark:text-white font-medium">
+                        <TableCell className="font-medium">
                           {w.userName} {w.userLastName}
                         </TableCell>
-                        <TableCell className="text-slate-600 dark:text-slate-300">
+                        <TableCell className="text-muted-foreground">
                           {w.userEmail}
                         </TableCell>
-                        <TableCell className="text-slate-600 dark:text-slate-300">
+                        <TableCell className="text-muted-foreground">
                           {w.worker.dni}
                         </TableCell>
-                        <TableCell className="text-slate-600 dark:text-slate-300">
+                        <TableCell className="text-muted-foreground">
                           {w.centerName}
                         </TableCell>
-                        <TableCell className="text-slate-600 dark:text-slate-300">
-                          {contractLabels[w.worker.contractType] ??
-                            w.worker.contractType}
+                        <TableCell>
+                          <StatusBadge tone="neutral" size="sm" dot={false}>
+                            {contractLabels[w.worker.contractType] ??
+                              w.worker.contractType}
+                          </StatusBadge>
                         </TableCell>
-                        <TableCell className="text-slate-600 dark:text-slate-300 text-right">
+                        <TableCell className="text-right text-muted-foreground tabular-nums">
                           {w.worker.hourWeek}h
                         </TableCell>
-                        <TableCell>
-                          <Link
-                            href={`/dashboard/admin/workers/${w.worker.id}`}
-                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                        <TableCell className="pr-4 text-right">
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="icon"
+                            className="size-9"
                           >
-                            <Eye className="w-4 h-4" />
-                          </Link>
+                            <Link
+                              href={`/dashboard/admin/workers/${w.worker.id}`}
+                              aria-label={t("viewWorker", {
+                                name: `${w.userName} ${w.userLastName}`,
+                              })}
+                            >
+                              <Eye />
+                            </Link>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -765,82 +834,99 @@ export default function WorkerListView({
           )}
         </div>
 
-        <p className="text-sm text-slate-500">
-          Mostrando {filtered.length} de {workers.length} trabajador
-          {workers.length !== 1 ? "es" : ""}
+        <p className="text-sm text-muted-foreground tabular-nums">
+          {t("showingCount", {
+            shown: filtered.length,
+            count: workers.length,
+          })}
         </p>
       </div>
 
       {/* Modal — Cambiar centro */}
       {bulkModal === "move" && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 w-full max-w-sm shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bulk-move-title"
+            className="w-full max-w-lg rounded-2xl border bg-card p-6 shadow-float"
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <h2
+                id="bulk-move-title"
+                className="text-lg font-semibold tracking-tight"
+              >
                 {t("changeCenter")}
               </h2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={closeBulkModal}
                 disabled={bulkProcessing}
-                className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-40"
+                aria-label={t("close")}
+                className="-mr-3 -mt-3"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <X />
+              </Button>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              {selectedIds.size} trabajador{selectedIds.size !== 1 ? "es" : ""}{" "}
-              seleccionado{selectedIds.size !== 1 ? "s" : ""}
-            </p>
-            <label className="block text-sm text-slate-600 dark:text-slate-300 mb-1">
-              {t("targetCenter")}
-            </label>
-            <select
-              value={bulkTargetCenter}
-              onChange={(e) => setBulkTargetCenter(e.target.value)}
-              disabled={bulkProcessing}
-              className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 [&>option]:bg-white dark:[&>option]:bg-slate-700"
-            >
-              <option value="">{t("selectCenter")}</option>
-              {centers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {bulkError && (
-              <p className="text-sm text-red-400 mb-3">{bulkError}</p>
-            )}
-            {bulkProcessing && (
-              <p className="text-sm text-blue-400 mb-3">
-                {t("movingProgress", {
-                  current: bulkProgress.current,
-                  total: bulkProgress.total,
-                })}
+            <div className="space-y-5">
+              <p className="text-sm text-muted-foreground">
+                {t("selectedWorkers", { count: selectedIds.size })}
               </p>
-            )}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={closeBulkModal}
-                disabled={bulkProcessing}
-                className="flex-1 px-4 py-2 text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors disabled:opacity-50"
-              >
-                {tc("cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkMove}
-                disabled={!bulkTargetCenter || bulkProcessing}
-                className="flex-1 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {bulkProcessing
-                  ? t("movingProgress", {
-                      current: bulkProgress.current,
-                      total: bulkProgress.total,
-                    })
-                  : `${t("changeCenter")} ${selectedIds.size}`}
-              </button>
+              <div className="space-y-2">
+                <Label htmlFor="bulk-target-center">{t("targetCenter")}</Label>
+                <NativeSelect
+                  id="bulk-target-center"
+                  value={bulkTargetCenter}
+                  onChange={(e) => setBulkTargetCenter(e.target.value)}
+                  disabled={bulkProcessing}
+                >
+                  <option value="">{t("selectCenter")}</option>
+                  {centers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
+              {bulkError && <Alert variant="error">{bulkError}</Alert>}
+              {bulkProcessing && (
+                <Alert variant="info">
+                  <Loader2 className="animate-spin" />
+                  {t("movingProgress", {
+                    current: bulkProgress.current,
+                    total: bulkProgress.total,
+                  })}
+                </Alert>
+              )}
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeBulkModal}
+                  disabled={bulkProcessing}
+                >
+                  {tc("cancel")}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleBulkMove}
+                  disabled={!bulkTargetCenter || bulkProcessing}
+                >
+                  {bulkProcessing ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      {t("movingProgress", {
+                        current: bulkProgress.current,
+                        total: bulkProgress.total,
+                      })}
+                    </>
+                  ) : (
+                    t("moveWorkers", { count: selectedIds.size })
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -848,104 +934,128 @@ export default function WorkerListView({
 
       {/* Modal — Añadir trabajador manualmente */}
       {addModal === "manual" && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-worker-title"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border bg-card p-6 shadow-float"
+          >
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <h2
+                id="add-worker-title"
+                className="text-lg font-semibold tracking-tight"
+              >
                 {t("modalAddWorker")}
               </h2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => !manualSaving && setAddModal(null)}
                 disabled={manualSaving}
-                className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-40"
+                aria-label={t("close")}
+                className="-mr-3 -mt-3"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <X />
+              </Button>
             </div>
 
-            <form onSubmit={handleManualCreate} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelName")} <span className="text-red-400">*</span>
-                  </label>
-                  <input
+            <form onSubmit={handleManualCreate} className="space-y-5">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="manual-name">
+                    {t("labelName")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <Input
+                    id="manual-name"
                     type="text"
                     required
                     value={manualForm.name}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, name: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelLastName")} <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="manual-last-name">
+                    {t("labelLastName")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <Input
+                    id="manual-last-name"
                     type="text"
                     required
                     value={manualForm.lastName}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, lastName: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelEmail")} <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="manual-email">
+                    {t("labelEmail")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <Input
+                    id="manual-email"
                     type="email"
                     required
                     value={manualForm.email}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, email: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelPhone")}
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="manual-phone">{t("labelPhone")}</Label>
+                  <Input
+                    id="manual-phone"
                     type="tel"
                     value={manualForm.phone}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, phone: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelDni")} <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="manual-dni">
+                    {t("labelDni")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <Input
+                    id="manual-dni"
                     type="text"
                     required
                     value={manualForm.dni}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, dni: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelCenter")} <span className="text-red-400">*</span>
-                  </label>
-                  <select
+                <div className="space-y-2">
+                  <Label htmlFor="manual-center">
+                    {t("labelCenter")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <NativeSelect
+                    id="manual-center"
                     required
                     value={manualForm.centerId}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, centerId: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-white dark:[&>option]:bg-slate-700"
                   >
                     <option value="">{t("selectOption")}</option>
                     {centers.map((c) => (
@@ -953,28 +1063,34 @@ export default function WorkerListView({
                         {c.name}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelJob")} <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                <div className="space-y-2">
+                  <Label htmlFor="manual-job">
+                    {t("labelJob")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <Input
+                    id="manual-job"
                     type="text"
                     required
                     value={manualForm.job}
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, job: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
+                <div className="space-y-2">
+                  <Label htmlFor="manual-contract">
                     {t("labelContractType")}{" "}
-                    <span className="text-red-400">*</span>
-                  </label>
-                  <select
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <NativeSelect
+                    id="manual-contract"
                     required
                     value={manualForm.contractType}
                     onChange={(e) =>
@@ -983,19 +1099,22 @@ export default function WorkerListView({
                         contractType: e.target.value,
                       }))
                     }
-                    className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-white dark:[&>option]:bg-slate-700"
                   >
                     <option value="full_time">{t("contractFull")}</option>
                     <option value="part_time">{t("contractPart")}</option>
                     <option value="temporary">{t("contractTemp")}</option>
                     <option value="internship">{t("contractIntern")}</option>
-                  </select>
+                  </NativeSelect>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    {t("labelHourWeek")} <span className="text-red-400">*</span>
-                  </label>
-                  <input
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="manual-hour-week">
+                    {t("labelHourWeek")}{" "}
+                    <span aria-hidden="true" className="text-alert-text">
+                      *
+                    </span>
+                  </Label>
+                  <Input
+                    id="manual-hour-week"
                     type="number"
                     required
                     min={1}
@@ -1004,31 +1123,26 @@ export default function WorkerListView({
                     onChange={(e) =>
                       setManualForm((f) => ({ ...f, hourWeek: e.target.value }))
                     }
-                    className="w-full sm:w-32 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="tabular-nums sm:w-32"
                   />
                 </div>
               </div>
 
-              {manualError && (
-                <p className="text-sm text-red-400">{manualError}</p>
-              )}
+              {manualError && <Alert variant="error">{manualError}</Alert>}
 
-              <div className="flex gap-3 pt-2">
-                <button
+              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => !manualSaving && setAddModal(null)}
                   disabled={manualSaving}
-                  className="flex-1 px-4 py-2 text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors disabled:opacity-50"
                 >
                   {tc("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  disabled={manualSaving}
-                  className="flex-1 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                </Button>
+                <Button type="submit" disabled={manualSaving}>
+                  {manualSaving && <Loader2 className="animate-spin" />}
                   {manualSaving ? t("creating") : t("createWorker")}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -1037,105 +1151,147 @@ export default function WorkerListView({
 
       {/* Modal — Confirmar eliminación */}
       {bulkModal === "delete" && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 w-full max-w-sm shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="bulk-delete-title"
+            aria-describedby="bulk-delete-description"
+            className="w-full max-w-lg rounded-2xl border bg-card p-6 shadow-float"
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <h2
+                id="bulk-delete-title"
+                className="text-lg font-semibold tracking-tight"
+              >
                 {t("modalDeleteWorkers")}
               </h2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={closeBulkModal}
                 disabled={bulkProcessing}
-                className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-40"
+                aria-label={t("close")}
+                className="-mr-3 -mt-3"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <X />
+              </Button>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Se eliminarán{" "}
-              <span className="text-slate-900 dark:text-white font-medium">
-                {selectedIds.size}
-              </span>{" "}
-              trabajador{selectedIds.size !== 1 ? "es" : ""} junto con todos sus
-              registros. Esta acción no se puede deshacer.
-            </p>
-            {bulkError && (
-              <p className="text-sm text-red-400 mb-3">{bulkError}</p>
-            )}
-            {bulkProcessing && (
-              <p className="text-sm text-red-400 mb-3">
-                {t("deletingProgress", {
-                  current: bulkProgress.current,
-                  total: bulkProgress.total,
+            <div className="space-y-5">
+              <p
+                id="bulk-delete-description"
+                className="text-sm text-muted-foreground"
+              >
+                {t.rich("deleteWorkersDescription", {
+                  count: selectedIds.size,
+                  strong: (chunks) => (
+                    <strong className="font-semibold text-foreground tabular-nums">
+                      {chunks}
+                    </strong>
+                  ),
                 })}
               </p>
-            )}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={closeBulkModal}
-                disabled={bulkProcessing}
-                className="flex-1 px-4 py-2 text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors disabled:opacity-50"
-              >
-                {tc("cancel")}
-              </button>
-              <button
-                type="button"
-                onClick={handleBulkDelete}
-                disabled={bulkProcessing}
-                className="flex-1 px-4 py-2 text-sm bg-red-700 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50"
-              >
-                {bulkProcessing ? "..." : `${t("delete")} ${selectedIds.size}`}
-              </button>
+              {bulkError && <Alert variant="error">{bulkError}</Alert>}
+              {bulkProcessing && (
+                <Alert variant="info">
+                  <Loader2 className="animate-spin" />
+                  {t("deletingProgress", {
+                    current: bulkProgress.current,
+                    total: bulkProgress.total,
+                  })}
+                </Alert>
+              )}
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeBulkModal}
+                  disabled={bulkProcessing}
+                >
+                  {tc("cancel")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleBulkDelete}
+                  disabled={bulkProcessing}
+                >
+                  {bulkProcessing ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      {t("deletingProgress", {
+                        current: bulkProgress.current,
+                        total: bulkProgress.total,
+                      })}
+                    </>
+                  ) : (
+                    t("deleteWorkers", { count: selectedIds.size })
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       )}
       {/* Modal — Importar Excel */}
       {addModal === "excel" && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-6 w-full max-w-3xl shadow-2xl max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between mb-5 shrink-0">
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="import-excel-title"
+            className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border bg-card p-6 shadow-float"
+          >
+            <div className="mb-5 flex shrink-0 items-start justify-between gap-4">
+              <h2
+                id="import-excel-title"
+                className="text-lg font-semibold tracking-tight"
+              >
                 {t("modalImportExcel")}
               </h2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => !excelImporting && setAddModal(null)}
                 disabled={excelImporting}
-                className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-40"
+                aria-label={t("close")}
+                className="-mr-3 -mt-3"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <X />
+              </Button>
             </div>
 
             {excelRows.length === 0 ? (
               /* Step 1 — file picker */
               <div className="space-y-5">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-muted-foreground">
                   {t("uploadInstruction")}
                 </p>
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={downloadTemplate}
-                  className="flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download />
                   {t("downloadTemplate")}
-                </button>
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl py-10 cursor-pointer hover:border-slate-400 dark:hover:border-slate-500 transition-colors">
-                  <FileSpreadsheet className="w-10 h-10 text-slate-400 dark:text-slate-500 mb-3" />
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                </Button>
+                <label className="relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border-strong px-4 py-10 text-center transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background hover:border-foreground/30 hover:bg-accent">
+                  <FileSpreadsheet
+                    aria-hidden="true"
+                    className="mb-3 size-10 text-muted-foreground"
+                  />
+                  <span className="text-sm font-medium">
                     {t("clickToSelect")}
                   </span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                  <span className="mt-1 text-xs text-muted-foreground">
                     .xlsx · .xls · .csv
                   </span>
                   <input
                     type="file"
                     accept=".xlsx,.xls,.csv"
-                    className="hidden"
+                    className="sr-only"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handleExcelFile(file);
@@ -1147,31 +1303,38 @@ export default function WorkerListView({
               /* Step 2 — preview + import */
               <>
                 {/* Summary */}
-                <div className="flex items-center gap-4 mb-4 shrink-0">
-                  <span className="flex items-center gap-1.5 text-sm text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {excelRows.filter((r) => r.valid).length} válidas
-                  </span>
+                <div className="mb-4 flex shrink-0 flex-wrap items-center gap-2">
+                  <StatusBadge tone="live" size="sm" className="tabular-nums">
+                    {t("validRows", {
+                      count: excelRows.filter((r) => r.valid).length,
+                    })}
+                  </StatusBadge>
                   {excelRows.some((r) => !r.valid) && (
-                    <span className="flex items-center gap-1.5 text-sm text-red-400">
-                      <AlertCircle className="w-4 h-4" />
-                      {excelRows.filter((r) => !r.valid).length} inválidas
-                    </span>
+                    <StatusBadge
+                      tone="alert"
+                      size="sm"
+                      className="tabular-nums"
+                    >
+                      {t("invalidRows", {
+                        count: excelRows.filter((r) => !r.valid).length,
+                      })}
+                    </StatusBadge>
                   )}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setExcelRows([])}
                     disabled={excelImporting}
-                    className="ml-auto text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors disabled:opacity-40"
+                    className="ml-auto"
                   >
                     {t("changeFile")}
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Table */}
-                <div className="overflow-auto flex-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs">
+                <div className="flex-1 overflow-auto rounded-lg border text-xs">
                   <table className="w-full min-w-[640px]">
-                    <thead className="bg-slate-100/60 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 sticky top-0">
+                    <thead className="sticky top-0 bg-secondary text-muted-foreground">
                       <tr>
                         <th className="px-3 py-2 text-left font-medium">
                           {t("colName")}
@@ -1192,42 +1355,43 @@ export default function WorkerListView({
                           {t("colHourWeek")}
                         </th>
                         <th className="px-3 py-2 text-left font-medium">
-                          Estado
+                          {t("colStatus")}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    <tbody className="divide-y">
                       {excelRows.map((r, i) => (
-                        <tr
-                          key={i}
-                          className={
-                            r.valid ? "bg-emerald-900/20" : "bg-red-900/20"
-                          }
-                        >
-                          <td className="px-3 py-2 text-slate-900 dark:text-white">
+                        <tr key={i} className={cn(!r.valid && "bg-alert-soft")}>
+                          <td className="px-3 py-2 font-medium">
                             {r.name} {r.lastName}
                           </td>
-                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300">
+                          <td className="px-3 py-2 text-muted-foreground">
                             {r.email}
                           </td>
-                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300">
+                          <td className="px-3 py-2 text-muted-foreground">
                             {r.dni}
                           </td>
-                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300">
+                          <td className="px-3 py-2 text-muted-foreground">
                             {r.centerName}
                           </td>
-                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300">
+                          <td className="px-3 py-2 text-muted-foreground">
                             {contractLabels[r.contractType] ?? r.contractType}
                           </td>
-                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300 text-right">
+                          <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
                             {r.hourWeek}
                           </td>
                           <td className="px-3 py-2">
                             {r.valid ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                              <span className="inline-flex text-live-text">
+                                <CheckCircle2
+                                  aria-hidden="true"
+                                  className="size-4"
+                                />
+                                <span className="sr-only">{t("rowValid")}</span>
+                              </span>
                             ) : (
                               <span
-                                className="text-red-400"
+                                className="font-medium text-alert-text"
                                 title={r.errors.join(" · ")}
                               >
                                 {r.errors[0]}
@@ -1243,52 +1407,53 @@ export default function WorkerListView({
                 </div>
 
                 {excelError && (
-                  <p className="text-sm text-red-400 mt-3 shrink-0">
+                  <Alert variant="error" className="mt-3 shrink-0">
                     {excelError}
-                  </p>
+                  </Alert>
                 )}
                 {excelImporting && (
-                  <p className="text-sm text-blue-400 mt-3 shrink-0">
+                  <Alert variant="info" className="mt-3 shrink-0">
+                    <Loader2 className="animate-spin" />
                     {t("importingProgress", {
                       current: excelProgress.current,
                       total: excelProgress.total,
                     })}
-                  </p>
+                  </Alert>
                 )}
 
-                <div className="flex flex-wrap gap-3 mt-4 shrink-0">
-                  <button
+                <div className="mt-4 flex shrink-0 flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => !excelImporting && setAddModal(null)}
                     disabled={excelImporting}
-                    className="px-4 py-2 text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors disabled:opacity-50"
                   >
                     {tc("cancel")}
-                  </button>
+                  </Button>
                   {excelRows.some((r) => !r.valid) &&
                     excelRows.some((r) => r.valid) && (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleExcelImport(true)}
                         disabled={excelImporting}
-                        className="px-4 py-2 text-sm bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {excelImporting
                           ? t("importing")
-                          : `${t("importing")} (${excelRows.filter((r) => r.valid).length})`}
-                      </button>
+                          : t("importValidRows", {
+                              count: excelRows.filter((r) => r.valid).length,
+                            })}
+                      </Button>
                     )}
                   {excelRows.every((r) => r.valid) && (
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleExcelImport(false)}
                       disabled={excelImporting}
-                      className="px-4 py-2 text-sm bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {excelImporting
                         ? t("importing")
-                        : `${t("importing")} (${excelRows.length})`}
-                    </button>
+                        : t("importAllRows", { count: excelRows.length })}
+                    </Button>
                   )}
                 </div>
               </>

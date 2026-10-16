@@ -4,6 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { UserCog, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { StatusBadge } from "@/components/ui/status-badge";
 import type { User, Center } from "@/core/domain/entities";
 
 interface UnassignedWorkerPanelProps {
@@ -99,75 +105,86 @@ export default function UnassignedWorkerPanel({
   };
 
   return (
-    <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-amber-500/30 overflow-hidden">
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       {/* Header */}
       <button
+        type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-100 dark:hover:bg-slate-700/20 transition-colors"
+        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:px-5"
       >
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 bg-amber-500/20 rounded-lg">
-            <UserCog className="w-4 h-4 text-amber-400" />
-          </div>
-          <span className="text-sm font-medium text-slate-900 dark:text-white">
-            {t("title")}
+        <span className="flex min-w-0 items-center gap-3">
+          <UserCog
+            aria-hidden="true"
+            className="size-5 shrink-0 text-muted-foreground"
+          />
+          <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-semibold">{t("title")}</span>
+            <StatusBadge
+              tone="brand"
+              size="sm"
+              dot={false}
+              className="tabular-nums"
+            >
+              {unassignedWorkers.length}
+            </StatusBadge>
           </span>
-          <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded-full font-medium">
-            {unassignedWorkers.length}
-          </span>
-        </div>
+        </span>
         {expanded ? (
-          <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+          <ChevronUp
+            aria-hidden="true"
+            className="size-5 shrink-0 text-muted-foreground"
+          />
         ) : (
-          <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+          <ChevronDown
+            aria-hidden="true"
+            className="size-5 shrink-0 text-muted-foreground"
+          />
         )}
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-200 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-700">
+        <ul className="divide-y border-t">
           {unassignedWorkers.map((worker) => (
-            <div key={worker.id}>
+            <li key={worker.id}>
               {/* Worker row */}
-              <div className="flex items-center justify-between px-5 py-3">
+              <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                  <p className="truncate font-medium">
                     {worker.name} {worker.lastName}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  <p className="truncate text-sm text-muted-foreground">
                     {worker.email}
                   </p>
                 </div>
-                <button
+                <Button
+                  type="button"
+                  variant={selectedUserId === worker.id ? "outline" : "default"}
                   onClick={() => handleToggleAssign(worker)}
-                  className={`ml-4 shrink-0 px-3 py-1.5 text-xs rounded-lg transition-colors ${
-                    selectedUserId === worker.id
-                      ? "bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-600 dark:hover:bg-slate-500 dark:text-white"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
+                  aria-expanded={selectedUserId === worker.id}
+                  className="shrink-0"
                 >
                   {selectedUserId === worker.id ? t("cancel") : t("assign")}
-                </button>
+                </Button>
               </div>
 
               {/* Inline assignment form */}
               {selectedUserId === worker.id && (
-                <div className="px-5 pb-5 pt-2 space-y-4 bg-slate-50 dark:bg-slate-700/20">
-                  {error && (
-                    <p className="text-xs text-red-400 font-medium">{error}</p>
-                  )}
+                <div className="space-y-5 bg-secondary px-4 py-5 sm:px-5">
+                  {error && <Alert variant="error">{error}</Alert>}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
                     {/* Centro */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="space-y-2">
+                      <Label htmlFor={`assign-center-${worker.id}`}>
                         {t("center")}
-                      </label>
-                      <select
+                      </Label>
+                      <NativeSelect
+                        id={`assign-center-${worker.id}`}
                         value={form.centerId}
                         onChange={(e) =>
                           setForm((f) => ({ ...f, centerId: e.target.value }))
                         }
-                        className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                       >
                         <option value="">{t("selectCenter")}</option>
                         {centers.map((c) => (
@@ -175,15 +192,16 @@ export default function UnassignedWorkerPanel({
                             {c.name}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                     </div>
 
                     {/* DNI */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-slate-500 dark:text-slate-400">
-                        DNI *
-                      </label>
-                      <input
+                    <div className="space-y-2">
+                      <Label htmlFor={`assign-dni-${worker.id}`}>
+                        {t("dni")}
+                      </Label>
+                      <Input
+                        id={`assign-dni-${worker.id}`}
                         type="text"
                         value={form.dni}
                         onChange={(e) =>
@@ -191,16 +209,16 @@ export default function UnassignedWorkerPanel({
                         }
                         placeholder="12345678A"
                         maxLength={9}
-                        className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
                       />
                     </div>
 
                     {/* Tipo de contrato */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="space-y-2">
+                      <Label htmlFor={`assign-contract-${worker.id}`}>
                         {t("contractType")}
-                      </label>
-                      <select
+                      </Label>
+                      <NativeSelect
+                        id={`assign-contract-${worker.id}`}
                         value={form.contractType}
                         onChange={(e) =>
                           setForm((f) => ({
@@ -208,22 +226,22 @@ export default function UnassignedWorkerPanel({
                             contractType: e.target.value,
                           }))
                         }
-                        className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
                       >
                         {contractOptions.map((o) => (
                           <option key={o.value} value={o.value}>
                             {o.label}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                     </div>
 
                     {/* Horas/semana */}
-                    <div className="space-y-1">
-                      <label className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="space-y-2">
+                      <Label htmlFor={`assign-hours-${worker.id}`}>
                         {t("hourWeek")}
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        id={`assign-hours-${worker.id}`}
                         type="number"
                         value={form.hourWeek}
                         onChange={(e) =>
@@ -231,42 +249,41 @@ export default function UnassignedWorkerPanel({
                         }
                         min="1"
                         max="168"
-                        className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"
+                        className="tabular-nums"
                       />
                     </div>
 
                     {/* Puesto */}
-                    <div className="sm:col-span-2 space-y-1">
-                      <label className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor={`assign-job-${worker.id}`}>
                         {t("job")}
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        id={`assign-job-${worker.id}`}
                         type="text"
                         value={form.job}
                         onChange={(e) =>
                           setForm((f) => ({ ...f, job: e.target.value }))
                         }
                         placeholder={t("jobPlaceholder")}
-                        className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg px-3 py-2 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-500"
                       />
                     </div>
                   </div>
 
-                  <button
+                  <Button
+                    type="button"
                     onClick={() => handleSubmit(worker.id)}
                     disabled={submitting}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                    className="w-full sm:w-auto"
                   >
-                    {submitting && (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    )}
+                    {submitting && <Loader2 className="animate-spin" />}
                     {t("confirmAssignment")}
-                  </button>
+                  </Button>
                 </div>
               )}
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

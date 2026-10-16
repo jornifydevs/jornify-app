@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -15,9 +15,14 @@ import {
   Trash2,
   Loader2,
   AlertTriangle,
+  type LucideIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { NativeSelect } from "@/components/ui/native-select";
+import { StatusBadge } from "@/components/ui/status-badge";
 import ExportRangeDropdown from "@/app/dashboard/_components/ExportRangeDropdown";
 import {
   Table,
@@ -27,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import type { WorkerDetailDTO } from "@/core/application/dtos/admin-workers.dto";
 import type { Center } from "@/core/domain/entities";
 import type { RegistroJornadaMeta } from "@/lib/export-utils";
@@ -37,11 +43,13 @@ interface WorkerDetailViewProps {
   registroMeta?: RegistroJornadaMeta;
 }
 
-const dayTypeColors: Record<string, string> = {
-  normal: "text-slate-700 dark:text-slate-300",
-  holiday: "text-amber-400",
-  vacation: "text-emerald-400",
-  sick_leave: "text-red-400",
+type StatusTone = ComponentProps<typeof StatusBadge>["tone"];
+
+const dayTypeTones: Record<string, StatusTone> = {
+  normal: "neutral",
+  holiday: "brand",
+  vacation: "pause",
+  sick_leave: "alert",
 };
 
 function formatDate(dateString: string, locale: string): string {
@@ -58,6 +66,28 @@ function formatTime(dateString: string | undefined, locale: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function InfoItem({
+  icon: Icon,
+  label,
+  children,
+  className,
+}: {
+  icon: LucideIcon;
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className="min-w-0 space-y-1">
+      <dt className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Icon aria-hidden="true" className="size-4 shrink-0" />
+        {label}
+      </dt>
+      <dd className={cn("break-words font-medium", className)}>{children}</dd>
+    </div>
+  );
 }
 
 export default function WorkerDetailView({
@@ -166,112 +196,63 @@ export default function WorkerDetailView({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                <div className="min-w-0">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Email
-                  </p>
-                  <p className="text-sm text-slate-900 dark:text-white truncate">
-                    {detail.userEmail}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {t("phone")}
-                  </p>
-                  <p className="text-sm text-slate-900 dark:text-white">
-                    {detail.userPhone || t("phoneNotRegistered")}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Building2 className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {t("center")}
-                  </p>
-                  <p className="text-sm text-slate-900 dark:text-white">
-                    {detail.centerName}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Briefcase className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {t("contract")}
-                  </p>
-                  <p className="text-sm text-slate-900 dark:text-white">
-                    {contractLabels[detail.worker.contractType] ??
-                      detail.worker.contractType}{" "}
-                    · {detail.worker.hourWeek}h/sem
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+      <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
         {/* Worker details */}
-        <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  DNI
-                </p>
-                <p className="text-sm text-slate-900 dark:text-white">
-                  {detail.worker.dni}
-                </p>
-              </div>
-            </div>
+        <Card>
+          <CardContent className="p-5 sm:p-6">
+            <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <InfoItem icon={Mail} label={t("email")}>
+                {detail.userEmail}
+              </InfoItem>
+              <InfoItem
+                icon={Phone}
+                label={t("phone")}
+                className={cn(
+                  !detail.userPhone && "font-normal text-muted-foreground"
+                )}
+              >
+                {detail.userPhone || t("phoneNotRegistered")}
+              </InfoItem>
+              <InfoItem icon={Building2} label={t("center")}>
+                {detail.centerName}
+              </InfoItem>
+              <InfoItem icon={Briefcase} label={t("contract")}>
+                {contractLabels[detail.worker.contractType] ??
+                  detail.worker.contractType}{" "}
+                ·{" "}
+                <span className="tabular-nums">
+                  {t("hoursPerWeek", { hours: detail.worker.hourWeek })}
+                </span>
+              </InfoItem>
+              <InfoItem icon={FileText} label={t("dni")}>
+                {detail.worker.dni}
+              </InfoItem>
+            </dl>
           </CardContent>
         </Card>
 
         {/* Management */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Move center */}
-          <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white text-sm">
-                <MoveRight className="w-4 h-4 text-blue-400" />
+          <Card>
+            <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <MoveRight
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
                 {t("moveCenterTitle")}
-              </CardTitle>
+              </h2>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <select
+            <CardContent className="space-y-3 p-5 pt-0 sm:p-6 sm:pt-0">
+              <NativeSelect
+                aria-label={t("moveCenterTitle")}
                 value={selectedCenter}
                 onChange={(e) => {
                   setSelectedCenter(e.target.value);
                   setMoveSuccess("");
                   setMoveError("");
                 }}
-                className="w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:[&>option]:bg-slate-800"
               >
                 {centers.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -281,76 +262,78 @@ export default function WorkerDetailView({
                       : ""}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
 
-              {moveError && <p className="text-xs text-red-400">{moveError}</p>}
-              {moveSuccess && (
-                <p className="text-xs text-green-400">{moveSuccess}</p>
-              )}
+              {moveError && <Alert variant="error">{moveError}</Alert>}
+              {moveSuccess && <Alert variant="success">{moveSuccess}</Alert>}
 
-              <button
+              <Button
+                type="button"
                 onClick={handleMove}
                 disabled={moving || selectedCenter === detail.worker.centerId}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                className="w-full"
               >
-                {moving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <MoveRight className="w-4 h-4" />
-                )}
+                {moving ? <Loader2 className="animate-spin" /> : <MoveRight />}
                 {moving ? t("moving") : t("confirmChange")}
-              </button>
+              </Button>
             </CardContent>
           </Card>
 
           {/* Delete */}
-          <Card className="bg-slate-800/50 border-red-900/40">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white text-sm">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
+          <Card className="border-destructive/30">
+            <CardHeader className="p-5 pb-3 sm:p-6 sm:pb-3">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <AlertTriangle
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
                 {t("dangerZone")}
-              </CardTitle>
+              </h2>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {deleteError && (
-                <p className="text-xs text-red-400">{deleteError}</p>
-              )}
+            <CardContent className="space-y-3 p-5 pt-0 sm:p-6 sm:pt-0">
+              {deleteError && <Alert variant="error">{deleteError}</Alert>}
 
               {!confirmDelete ? (
-                <button
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setConfirmDelete(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600/20 hover:bg-red-600/40 border border-red-600/40 text-red-400 hover:text-red-300 text-sm font-medium rounded-lg transition-colors"
+                  className="w-full border-destructive/40 text-alert-text hover:bg-alert-soft hover:text-alert-text"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 />
                   {t("deleteWorker")}
-                </button>
+                </Button>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs text-red-400 font-medium text-center">
+                <div className="space-y-3">
+                  <p className="text-center text-sm font-medium text-alert-text">
                     {t("confirmDeleteWorker", {
                       name: `${detail.userName} ${detail.userLastName}`,
                     })}
                   </p>
-                  <div className="flex gap-2">
-                    <button
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
                       onClick={handleDelete}
                       disabled={deleting}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex-1"
                     >
                       {deleting ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <Loader2 className="animate-spin" />
                       ) : (
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 />
                       )}
                       {deleting ? t("deleting") : t("yesDelete")}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => setConfirmDelete(false)}
                       disabled={deleting}
-                      className="flex-1 px-3 py-2 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex-1"
                     >
                       {tc("cancel")}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -359,13 +342,16 @@ export default function WorkerDetailView({
         </div>
 
         {/* Recent Records */}
-        <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white text-base">
-                <Clock className="w-5 h-5" />
+        <Card>
+          <CardHeader className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <Clock
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
                 {t("recentRecords")}
-              </CardTitle>
+              </h2>
               <ExportRangeDropdown
                 workerId={detail.worker.id}
                 defaultStart={(() => {
@@ -397,106 +383,108 @@ export default function WorkerDetailView({
               />
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0">
             {detail.recentRecords.length === 0 ? (
-              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                <Clock className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                <p>{t("noRecords")}</p>
+              <div className="py-8 text-center">
+                <Clock
+                  aria-hidden="true"
+                  className="mx-auto mb-3 size-10 text-muted-foreground"
+                />
+                <p className="font-medium">{t("noRecords")}</p>
               </div>
             ) : (
               <>
                 {/* Mobile list */}
-                <div className="block md:hidden space-y-3">
+                <ul className="space-y-2 md:hidden">
                   {detail.recentRecords.map((record, idx) => (
-                    <div
+                    <li
                       key={idx}
-                      className="p-3 rounded-lg bg-slate-50 border border-slate-200 dark:bg-slate-900/50 dark:border-slate-700"
+                      className="space-y-1.5 rounded-lg bg-secondary p-3"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-slate-900 dark:text-white">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium">
                           {formatDate(record.day, locale)}
                         </span>
-                        <span
-                          className={`text-xs ${dayTypeColors[record.typeDay] ?? "text-slate-300"}`}
+                        <StatusBadge
+                          tone={dayTypeTones[record.typeDay] ?? "neutral"}
+                          size="sm"
+                          dot={false}
                         >
                           {dayTypeLabels[record.typeDay] ?? record.typeDay}
-                        </span>
+                        </StatusBadge>
                       </div>
-                      <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground tabular-nums">
                         <span>
                           {formatTime(record.startHour, locale)} —{" "}
                           {formatTime(record.endHour, locale)}
                         </span>
-                        <span>{record.totalHour ?? "—"}</span>
+                        <span className="font-medium text-foreground">
+                          {record.totalHour ?? "—"}
+                        </span>
                       </div>
                       {record.breakTotalHour && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-amber-400/80">
+                        <div className="flex items-center justify-between gap-2 text-sm text-pause-text tabular-nums">
+                          <span>
                             {t("breakLabel")}{" "}
                             {formatTime(record.breakStartHour, locale)} —{" "}
                             {formatTime(record.breakEndHour, locale)}
                           </span>
-                          <span className="text-amber-400">
+                          <span className="font-medium">
                             {record.breakTotalHour}
                           </span>
                         </div>
                       )}
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
 
                 {/* Desktop table */}
                 <div className="hidden md:block">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-slate-200 dark:border-slate-700 hover:bg-transparent">
-                        <TableHead className="text-slate-500 dark:text-slate-400">
-                          {t("colDate")}
-                        </TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">
-                          {t("colType")}
-                        </TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">
-                          {t("colEntry")}
-                        </TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">
-                          {t("colExit")}
-                        </TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">
-                          {t("colBreak")}
-                        </TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400 text-right">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead>{t("colDate")}</TableHead>
+                        <TableHead>{t("colType")}</TableHead>
+                        <TableHead>{t("colEntry")}</TableHead>
+                        <TableHead>{t("colExit")}</TableHead>
+                        <TableHead>{t("colBreak")}</TableHead>
+                        <TableHead className="text-right">
                           {t("colTotal")}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {detail.recentRecords.map((record, idx) => (
-                        <TableRow
-                          key={idx}
-                          className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/30"
-                        >
-                          <TableCell className="text-slate-900 dark:text-white">
+                        <TableRow key={idx}>
+                          <TableCell className="font-medium">
                             {formatDate(record.day, locale)}
                           </TableCell>
-                          <TableCell
-                            className={
-                              dayTypeColors[record.typeDay] ??
-                              "text-slate-700 dark:text-slate-300"
-                            }
-                          >
-                            {dayTypeLabels[record.typeDay] ?? record.typeDay}
+                          <TableCell>
+                            <StatusBadge
+                              tone={dayTypeTones[record.typeDay] ?? "neutral"}
+                              size="sm"
+                              dot={false}
+                            >
+                              {dayTypeLabels[record.typeDay] ?? record.typeDay}
+                            </StatusBadge>
                           </TableCell>
-                          <TableCell className="text-slate-700 dark:text-slate-300">
+                          <TableCell className="tabular-nums">
                             {formatTime(record.startHour, locale)}
                           </TableCell>
-                          <TableCell className="text-slate-700 dark:text-slate-300">
+                          <TableCell className="tabular-nums">
                             {formatTime(record.endHour, locale)}
                           </TableCell>
-                          <TableCell className="text-amber-400">
+                          <TableCell
+                            className={cn(
+                              "tabular-nums",
+                              record.breakTotalHour
+                                ? "text-pause-text"
+                                : "text-muted-foreground"
+                            )}
+                          >
                             {record.breakTotalHour ?? "—"}
                           </TableCell>
-                          <TableCell className="text-slate-700 dark:text-slate-300 text-right">
+                          <TableCell className="text-right font-medium tabular-nums">
                             {record.totalHour ?? "—"}
                           </TableCell>
                         </TableRow>
