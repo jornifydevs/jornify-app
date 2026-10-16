@@ -11,6 +11,9 @@ import { GetWorkerDashboardUseCase } from "@/core/application/use-cases/dashboar
 import AdminDashboard from "./_components/AdminDashboard";
 import WorkerDashboard from "./_components/WorkerDashboard";
 import { getTranslations } from "next-intl/server";
+import { Hourglass } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export default async function Dashboard() {
   const cookieStore = await cookies();
@@ -23,6 +26,9 @@ export default async function Dashboard() {
   if (!user) {
     redirect("/auth/login");
   }
+
+  const tp = await getTranslations("dashboard.pending");
+  const tc = await getTranslations("common");
 
   // Create repositories
   const userRepo = new SupabaseUserRepository(supabase);
@@ -38,35 +44,29 @@ export default async function Dashboard() {
     // Redirecting to /auth/login would create an infinite loop because the
     // middleware lets authenticated users through. Show a pending page instead.
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center px-6">
-        <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-500/50 p-8 max-w-md text-center">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-            Cuenta pendiente de activación
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-2">
-            Tu cuenta de acceso se ha creado pero el perfil aún no está listo.
+      <div className="flex flex-1 items-center justify-center px-5 py-12">
+        <Card className="w-full max-w-md p-6 text-center sm:p-8">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-brand-soft text-brand-text">
+            <Hourglass className="size-6" aria-hidden="true" />
+          </div>
+          <h1 className="mt-5 text-xl font-semibold tracking-tight">
+            {tp("profile.title")}
+          </h1>
+          <p className="mt-2 text-muted-foreground">{tp("profile.message")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {tp("profile.hint")}
           </p>
-          <p className="text-sm text-slate-500 mb-6">
-            Si acabas de confirmar tu email, espera unos segundos y recarga la
-            página. Si el problema persiste, contacta con el administrador.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              href="/dashboard"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-            >
-              Recargar
-            </a>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button asChild>
+              <a href="/dashboard">{tp("reload")}</a>
+            </Button>
             <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="w-full px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors text-sm"
-              >
-                Cerrar Sesión
-              </button>
+              <Button type="submit" variant="outline" className="w-full">
+                {tc("signOut")}
+              </Button>
             </form>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -93,24 +93,25 @@ export default async function Dashboard() {
   // Worker user with no worker record yet — waiting for admin to assign them
   if (userData.role === "worker" && !workerData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center px-6">
-        <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-500/50 p-8 max-w-md text-center">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-            Cuenta pendiente de asignación
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">
-            Tu cuenta ha sido creada correctamente. En breve, un administrador
-            te asignará a tu centro de trabajo y completará tu perfil.
+      <div className="flex flex-1 items-center justify-center px-5 py-12">
+        <Card className="w-full max-w-md p-6 text-center sm:p-8">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-brand-soft text-brand-text">
+            <Hourglass className="size-6" aria-hidden="true" />
+          </div>
+          <h1 className="mt-5 text-xl font-semibold tracking-tight">
+            {tp("assignment.title")}
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            {tp("assignment.message")}
           </p>
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors text-sm"
-            >
-              Cerrar Sesión
-            </button>
-          </form>
-        </div>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <form action="/auth/signout" method="post">
+              <Button type="submit" variant="outline" className="w-full">
+                {tc("signOut")}
+              </Button>
+            </form>
+          </div>
+        </Card>
       </div>
     );
   }
@@ -123,28 +124,27 @@ export default async function Dashboard() {
   const isAdmin = userData.role === "admin";
 
   const t = await getTranslations("dashboard.admin.pendingSetup");
-  const tc = await getTranslations("common");
 
   if (isAdmin) {
     if (!userData.companyId) {
       return (
-        <div className="flex-1 bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center px-6">
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-amber-500/50 p-8 max-w-md text-center">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+        <div className="flex flex-1 items-center justify-center px-5 py-12">
+          <Card className="w-full max-w-md p-6 text-center sm:p-8">
+            <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-brand-soft text-brand-text">
+              <Hourglass className="size-6" aria-hidden="true" />
+            </div>
+            <h1 className="mt-5 text-xl font-semibold tracking-tight">
               {t("title")}
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 mb-6">
-              {t("message")}
-            </p>
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-              >
-                {tc("signOut")}
-              </button>
-            </form>
-          </div>
+            </h1>
+            <p className="mt-2 text-muted-foreground">{t("message")}</p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <form action="/auth/signout" method="post">
+                <Button type="submit" variant="outline" className="w-full">
+                  {tc("signOut")}
+                </Button>
+              </form>
+            </div>
+          </Card>
         </div>
       );
     }

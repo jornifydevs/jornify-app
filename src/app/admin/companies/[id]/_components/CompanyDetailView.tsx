@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { Company, Center } from "@/core/domain/entities";
-import {
-  ALL_CENTER_FEATURES,
-  CENTER_FEATURES,
-} from "@/core/domain/entities/center-feature";
+import { ALL_CENTER_FEATURES } from "@/core/domain/entities/center-feature";
 import { createClient } from "@/infrastructure/supabase/client";
 import { SupabaseCompanyRepository } from "@/infrastructure/supabase/repositories/supabase-company.repository";
 import { SupabaseCenterRepository } from "@/infrastructure/supabase/repositories/supabase-center.repository";
@@ -17,6 +15,7 @@ import { DomainError } from "@/core/domain/errors/domain-errors";
 import {
   ArrowLeft,
   Building2,
+  Check,
   MapPin,
   Mail,
   FileText,
@@ -25,9 +24,11 @@ import {
   Users,
   Settings,
 } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface CenterWithWorkerCount extends Center {
   workerCount: number;
@@ -37,15 +38,6 @@ interface CompanyDetailViewProps {
   company: Company;
   centers: CenterWithWorkerCount[];
 }
-
-const FEATURE_LABELS: Record<string, string> = {
-  [CENTER_FEATURES.PROFILE]: "Perfil",
-  [CENTER_FEATURES.PAYROLL]: "Nóminas",
-  [CENTER_FEATURES.VACATION]: "Vacaciones",
-  [CENTER_FEATURES.CALENDAR]: "Calendario",
-  [CENTER_FEATURES.BREAK]: "Descanso",
-  [CENTER_FEATURES.SCHEDULE]: "Turnos",
-};
 
 export default function CompanyDetailView({
   company,
@@ -65,6 +57,8 @@ export default function CompanyDetailView({
     Record<string, string[]>
   >(Object.fromEntries(centers.map((c) => [c.id, [...c.enabledFeatures]])));
   const router = useRouter();
+  const t = useTranslations("superAdmin");
+  const tc = useTranslations("common");
 
   const handleSaveCompany = async () => {
     setError("");
@@ -78,11 +72,13 @@ export default function CompanyDetailView({
 
       await useCase.execute(company.id, formData);
       setEditMode(false);
-      setSuccess("Datos de la empresa guardados correctamente");
+      setSuccess(t("companyDetail.companySaved"));
       router.refresh();
     } catch (e) {
       const message =
-        e instanceof DomainError ? e.message : "Error al actualizar la empresa";
+        e instanceof DomainError
+          ? e.message
+          : t("companyDetail.errorUpdateCompany");
       setError(message);
     } finally {
       setSaving(false);
@@ -112,13 +108,13 @@ export default function CompanyDetailView({
       await useCase.execute(centerId, {
         enabledFeatures: centerFeatures[centerId],
       });
-      setSuccess("Se han guardado los cambios");
+      setSuccess(t("companyDetail.featuresSaved"));
       router.refresh();
     } catch (e) {
       const message =
         e instanceof DomainError
           ? e.message
-          : "Error al actualizar funcionalidades";
+          : t("companyDetail.errorUpdateFeatures");
       setError(message);
     } finally {
       setSaving(false);
@@ -126,65 +122,54 @@ export default function CompanyDetailView({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="flex flex-1 flex-col">
       {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-3">
+      <header className="border-b bg-card">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
           <Link
             href="/admin/companies"
-            className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            aria-label={tc("back")}
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-track focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+            <ArrowLeft className="size-5" aria-hidden="true" />
           </Link>
-          <div className="p-2 bg-red-600 rounded-lg">
-            <Shield className="w-5 h-5 text-white" />
+          <div className="hidden size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-foreground sm:flex">
+            <Shield className="size-5" aria-hidden="true" />
           </div>
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <h1 className="min-w-0 truncate text-lg font-semibold tracking-tight">
             {company.name}
           </h1>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
         <div className="space-y-8">
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            </div>
-          )}
+          {error && <Alert variant="error">{error}</Alert>}
 
-          {success && (
-            <div className="p-3 bg-green-500/10 border border-green-500/50 rounded-lg">
-              <p className="text-sm text-green-600 dark:text-green-400">
-                {success}
-              </p>
-            </div>
-          )}
+          {success && <Alert variant="success">{success}</Alert>}
 
           {/* Company Info */}
-          <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-                Datos de la Empresa
+          <section className="rounded-xl border bg-card p-5 shadow-sm sm:p-6">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <Building2
+                  className="size-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                {t("companyDetail.companyData")}
               </h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setEditMode(!editMode)}
-              >
-                {editMode ? "Cancelar" : "Editar"}
+              <Button variant="outline" onClick={() => setEditMode(!editMode)}>
+                {editMode ? tc("cancel") : tc("edit")}
               </Button>
             </div>
 
             {editMode ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-4">
                   <div className="space-y-2">
-                    <Label className="text-slate-700 dark:text-slate-200">
-                      Nombre
-                    </Label>
+                    <Label htmlFor="company-name">{t("fields.name")}</Label>
                     <Input
+                      id="company-name"
                       value={formData.name}
                       onChange={(e) =>
                         setFormData({ ...formData, name: e.target.value })
@@ -192,10 +177,11 @@ export default function CompanyDetailView({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700 dark:text-slate-200">
-                      Razón Social
+                    <Label htmlFor="company-business-name">
+                      {t("fields.businessName")}
                     </Label>
                     <Input
+                      id="company-business-name"
                       value={formData.businessName}
                       onChange={(e) =>
                         setFormData({
@@ -206,10 +192,9 @@ export default function CompanyDetailView({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700 dark:text-slate-200">
-                      Email
-                    </Label>
+                    <Label htmlFor="company-email">{t("fields.email")}</Label>
                     <Input
+                      id="company-email"
                       type="email"
                       value={formData.email}
                       onChange={(e) =>
@@ -218,10 +203,11 @@ export default function CompanyDetailView({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700 dark:text-slate-200">
-                      Dirección
+                    <Label htmlFor="company-address">
+                      {t("fields.address")}
                     </Label>
                     <Input
+                      id="company-address"
                       value={formData.address}
                       onChange={(e) =>
                         setFormData({ ...formData, address: e.target.value })
@@ -232,64 +218,74 @@ export default function CompanyDetailView({
                 <Button
                   onClick={handleSaveCompany}
                   disabled={saving}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="w-full sm:w-auto"
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? "Guardando..." : "Guardar Cambios"}
+                  <Save />
+                  {saving
+                    ? t("companyDetail.saving")
+                    : t("companyDetail.saveChanges")}
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-300">
-                  <FileText className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <span className="text-sm">
-                    NIF:{" "}
-                    <span className="text-slate-900 dark:text-white">
-                      {company.nif}
-                    </span>
-                  </span>
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <FileText className="size-4" aria-hidden="true" />
+                    {t("fields.nif")}
+                  </dt>
+                  <dd className="mt-1 break-words font-medium">
+                    {company.nif}
+                  </dd>
                 </div>
-                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-300">
-                  <Building2 className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <span className="text-sm">
-                    Razón Social:{" "}
-                    <span className="text-slate-900 dark:text-white">
-                      {company.businessName}
-                    </span>
-                  </span>
+                <div className="min-w-0">
+                  <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Building2 className="size-4" aria-hidden="true" />
+                    {t("fields.businessName")}
+                  </dt>
+                  <dd className="mt-1 break-words font-medium">
+                    {company.businessName}
+                  </dd>
                 </div>
-                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-300">
-                  <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <span className="text-sm">
-                    <span className="text-slate-900 dark:text-white">
-                      {company.email}
-                    </span>
-                  </span>
+                <div className="min-w-0">
+                  <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Mail className="size-4" aria-hidden="true" />
+                    {t("fields.email")}
+                  </dt>
+                  <dd className="mt-1 break-words font-medium">
+                    {company.email}
+                  </dd>
                 </div>
-                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-300">
-                  <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  <span className="text-sm">
-                    <span className="text-slate-900 dark:text-white">
-                      {company.address}
-                    </span>
-                  </span>
+                <div className="min-w-0">
+                  <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="size-4" aria-hidden="true" />
+                    {t("fields.address")}
+                  </dt>
+                  <dd className="mt-1 break-words font-medium">
+                    {company.address}
+                  </dd>
                 </div>
-              </div>
+              </dl>
             )}
-          </div>
+          </section>
 
           {/* Centers & Features */}
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-green-500 dark:text-green-400" />
-              Centros y Funcionalidades
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold tracking-tight">
+              <Settings
+                className="size-5 text-muted-foreground"
+                aria-hidden="true"
+              />
+              {t("companyDetail.centersAndFeatures")}
             </h2>
 
             {centers.length === 0 ? (
-              <div className="bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-                <Building2 className="w-10 h-10 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-500 dark:text-slate-400">
-                  Esta empresa no tiene centros registrados
+              <div className="rounded-xl border bg-card p-8 text-center shadow-sm">
+                <Building2
+                  className="mx-auto size-10 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <p className="mt-3 font-medium">
+                  {t("companyDetail.noCenters")}
                 </p>
               </div>
             ) : (
@@ -297,28 +293,30 @@ export default function CompanyDetailView({
                 {centers.map((center) => (
                   <div
                     key={center.id}
-                    className="bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-5"
+                    className="rounded-xl border bg-card p-5 shadow-sm"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                      <div>
-                        <h3 className="text-slate-900 dark:text-white font-semibold">
-                          {center.name}
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {center.workerCount} trabajadores &middot;{" "}
-                          <MapPin className="w-3 h-3" />
-                          {center.address}
+                    <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold">{center.name}</h3>
+                        <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
+                          <Users className="size-3.5" aria-hidden="true" />
+                          <span className="tabular-nums">
+                            {t("companyDetail.workerCount", {
+                              count: center.workerCount,
+                            })}
+                          </span>
+                          <span aria-hidden="true">&middot;</span>
+                          <MapPin className="size-3.5" aria-hidden="true" />
+                          <span className="break-words">{center.address}</span>
                         </p>
                       </div>
                       <Button
-                        size="sm"
                         onClick={() => handleSaveCenterFeatures(center.id)}
                         disabled={saving}
-                        className="bg-green-600 hover:bg-green-700 self-start"
+                        className="self-start"
                       >
-                        <Save className="w-4 h-4 mr-1" />
-                        Guardar
+                        <Save />
+                        {tc("save")}
                       </Button>
                     </div>
 
@@ -330,16 +328,22 @@ export default function CompanyDetailView({
                         return (
                           <button
                             key={feature}
+                            type="button"
+                            aria-pressed={isEnabled}
                             onClick={() =>
                               handleToggleFeature(center.id, feature)
                             }
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                            className={cn(
+                              "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:min-h-9",
                               isEnabled
-                                ? "bg-green-600/20 dark:bg-green-600/30 text-green-700 dark:text-green-300 border border-green-500/50"
-                                : "bg-slate-100 dark:bg-slate-700/50 text-slate-500 border border-slate-200 dark:border-slate-600/50"
-                            }`}
+                                ? "border-transparent bg-live-soft text-live-text"
+                                : "bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
                           >
-                            {FEATURE_LABELS[feature] ?? feature}
+                            {isEnabled && (
+                              <Check className="size-4" aria-hidden="true" />
+                            )}
+                            {t(`features.${feature}`)}
                           </button>
                         );
                       })}
@@ -348,9 +352,9 @@ export default function CompanyDetailView({
                 ))}
               </div>
             )}
-          </div>
+          </section>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
