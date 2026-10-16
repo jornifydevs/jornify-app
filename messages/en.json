@@ -8,7 +8,7 @@
     "edit": "Edit",
     "back": "Back",
     "language": "Language",
-    "signOut": "Sign Out",
+    "signOut": "Sign out",
     "view": "View",
     "create": "Create",
     "search": "Search",
@@ -48,7 +48,8 @@
         "companySignature": "Company stamp & signature",
         "grandTotal": "Total hours computed"
       }
-    }
+    },
+    "toggleTheme": "Toggle theme"
   },
   "auth": {
     "login": {
@@ -270,7 +271,8 @@
         "columnCreated": "Created",
         "expiresLabel": "Expires:",
         "createdLabel": "Created:",
-        "info": "Codes expire 7 days after generation and can only be used once."
+        "info": "Codes expire 7 days after generation and can only be used once.",
+        "activeCount": "{count, plural, one {# active code} other {# active codes}}"
       },
       "workers": {
         "title": "Worker Management",
@@ -354,7 +356,8 @@
           "contractPart": "Part time",
           "contractTemp": "Temporary",
           "contractIntern": "Internship"
-        }
+        },
+        "registeredCount": "{count, plural, one {# registered worker} other {# registered workers}}"
       },
       "workerDetail": {
         "phone": "Phone",
@@ -424,7 +427,8 @@
         "daySickLeave": "Sick leave",
         "configureSchedule": "Configure schedule",
         "workerCount": "worker",
-        "workerCountPlural": "workers"
+        "workerCountPlural": "workers",
+        "count": "{count, plural, one {# center} other {# centers}}"
       },
       "centerSchedule": {
         "pageSubtitle": "Center settings",
@@ -506,7 +510,19 @@
         "back": "Back to dashboard"
       },
       "billingManagement": "Subscription",
-      "billingManagementDesc": "Manage your company plan and billing"
+      "billingManagementDesc": "Manage your company plan and billing",
+      "nav": {
+        "label": "Administration",
+        "menu": "Open menu",
+        "today": "Today",
+        "team": "Team",
+        "centers": "Centers",
+        "shifts": "Shifts",
+        "reports": "Reports",
+        "invitations": "Invitations",
+        "company": "Company",
+        "billing": "Subscription"
+      }
     },
     "timeTracker": {
       "todayLabel": "Today’s time tracking",
@@ -559,7 +575,7 @@
       "availability": "Availability",
       "calendar": "Calendar",
       "history": "History",
-      "schedule": "My Shifts",
+      "schedule": "My shifts",
       "menuLabel": "User menu"
     },
     "schedule": {
@@ -615,9 +631,7 @@
     "footer": {
       "privacyPolicy": "Privacy Policy",
       "termsAndConditions": "Terms and Conditions",
-      "copyright": "© {year} Jornify. All rights reserved.",
-      "switchToLight": "Switch to light mode",
-      "switchToDark": "Switch to dark mode"
+      "copyright": "© {year} Jornify. All rights reserved."
     },
     "profile": {
       "title": "My Profile",
@@ -694,6 +708,11 @@
     },
     "worker": {
       "greeting": "Hi, {name}"
+    },
+    "workerNav": {
+      "label": "Main navigation",
+      "home": "Home",
+      "more": "More"
     }
   },
   "superAdmin": {

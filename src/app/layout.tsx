@@ -22,6 +22,21 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+const THEME_COOKIE = "JORNIFY_THEME";
+
+// Without an explicit choice the theme follows the system. It runs before
+// the first paint so the wrong theme never flashes.
+const systemThemeScript = `(() => {
+  const media = matchMedia("(prefers-color-scheme: dark)");
+  const apply = () => {
+    if (!document.cookie.includes("${THEME_COOKIE}=")) {
+      document.documentElement.classList.toggle("dark", media.matches);
+    }
+  };
+  apply();
+  media.addEventListener("change", apply);
+})();`;
+
 export const metadata: Metadata = {
   title: "Jornify - Gestión de Horarios",
   description: "Sistema de gestión y control de horarios laborales",
@@ -42,26 +57,33 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const cookieStore = await cookies();
-  const theme = (cookieStore.get("JORNIFY_THEME")?.value ?? "dark") as
-    | "dark"
-    | "light";
+  const themeCookie = cookieStore.get(THEME_COOKIE)?.value;
+  const theme =
+    themeCookie === "dark" || themeCookie === "light" ? themeCookie : null;
 
   return (
     <html
       lang={locale}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={cn(
         geistSans.variable,
         geistMono.variable,
         theme === "dark" && "dark"
       )}
     >
+      <head>
+        {theme === null && (
+          <script dangerouslySetInnerHTML={{ __html: systemThemeScript }} />
+        )}
+      </head>
       <body className="font-sans antialiased flex min-h-screen flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PreviewBanner />
           <InactivityGuard>
             <main className="flex-1 flex flex-col">{children}</main>
           </InactivityGuard>
-          <AppFooter theme={theme} />
+          <AppFooter />
         </NextIntlClientProvider>
       </body>
     </html>

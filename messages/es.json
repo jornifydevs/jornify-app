@@ -8,7 +8,7 @@
     "edit": "Editar",
     "back": "Volver",
     "language": "Idioma",
-    "signOut": "Cerrar Sesión",
+    "signOut": "Cerrar sesión",
     "view": "Ver",
     "create": "Crear",
     "search": "Buscar",
@@ -48,7 +48,8 @@
         "companySignature": "Sello y firma de la empresa",
         "grandTotal": "Cómputo total de horas"
       }
-    }
+    },
+    "toggleTheme": "Cambiar tema"
   },
   "auth": {
     "login": {
@@ -270,7 +271,8 @@
         "columnCreated": "Creado",
         "expiresLabel": "Expira:",
         "createdLabel": "Creado:",
-        "info": "Los códigos caducan 7 días después de su generación y solo pueden usarse una vez."
+        "info": "Los códigos caducan 7 días después de su generación y solo pueden usarse una vez.",
+        "activeCount": "{count, plural, one {# código activo} other {# códigos activos}}"
       },
       "workers": {
         "title": "Gestión de Trabajadores",
@@ -354,7 +356,8 @@
           "contractPart": "Tiempo parcial",
           "contractTemp": "Temporal",
           "contractIntern": "Prácticas"
-        }
+        },
+        "registeredCount": "{count, plural, one {# trabajador registrado} other {# trabajadores registrados}}"
       },
       "workerDetail": {
         "phone": "Teléfono",
@@ -424,7 +427,8 @@
         "daySickLeave": "Baja médica",
         "configureSchedule": "Configurar horario",
         "workerCount": "trabajador",
-        "workerCountPlural": "trabajadores"
+        "workerCountPlural": "trabajadores",
+        "count": "{count, plural, one {# centro} other {# centros}}"
       },
       "centerSchedule": {
         "pageSubtitle": "Configuración de centro",
@@ -506,7 +510,19 @@
         "back": "Volver al panel"
       },
       "billingManagement": "Suscripción",
-      "billingManagementDesc": "Gestiona el plan y la facturación de tu empresa"
+      "billingManagementDesc": "Gestiona el plan y la facturación de tu empresa",
+      "nav": {
+        "label": "Administración",
+        "menu": "Abrir menú",
+        "today": "Hoy",
+        "team": "Equipo",
+        "centers": "Centros",
+        "shifts": "Turnos",
+        "reports": "Informes",
+        "invitations": "Invitaciones",
+        "company": "Empresa",
+        "billing": "Suscripción"
+      }
     },
     "timeTracker": {
       "todayLabel": "Fichaje de hoy",
@@ -559,7 +575,7 @@
       "availability": "Disponibilidad",
       "calendar": "Calendario",
       "history": "Histórico",
-      "schedule": "Mis Turnos",
+      "schedule": "Mis turnos",
       "menuLabel": "Menú de usuario"
     },
     "schedule": {
@@ -615,9 +631,7 @@
     "footer": {
       "privacyPolicy": "Política de Privacidad",
       "termsAndConditions": "Términos y Condiciones",
-      "copyright": "© {year} Jornify. Todos los derechos reservados.",
-      "switchToLight": "Cambiar a modo claro",
-      "switchToDark": "Cambiar a modo oscuro"
+      "copyright": "© {year} Jornify. Todos los derechos reservados."
     },
     "profile": {
       "title": "Mi Perfil",
@@ -694,6 +708,11 @@
     },
     "worker": {
       "greeting": "Hola, {name}"
+    },
+    "workerNav": {
+      "label": "Navegación principal",
+      "home": "Inicio",
+      "more": "Más"
     }
   },
   "superAdmin": {

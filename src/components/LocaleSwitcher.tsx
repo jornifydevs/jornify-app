@@ -1,63 +1,43 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
+import { Languages } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { setLocale } from "@/app/actions/locale";
-
-const locales = [
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "en", label: "English", flag: "🇬🇧" },
-] as const;
+import { useLocaleSwitch } from "@/hooks/useLocaleSwitch";
 
 export function LocaleSwitcher() {
-  const locale = useLocale();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const currentLocale = locales.find((l) => l.code === locale) ?? locales[0];
-
-  function handleLocaleChange(newLocale: string) {
-    startTransition(async () => {
-      await setLocale(newLocale);
-      router.refresh();
-    });
-  }
+  const tc = useTranslations("common");
+  const { locale, locales, changeLocale, isPending } = useLocaleSwitch();
+  const current = locales.find((l) => l.code === locale) ?? locales[0];
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 hover:text-white rounded-lg transition-colors disabled:opacity-50"
-          aria-label="Cambiar idioma"
-          disabled={isPending}
-        >
-          <span className="text-base">{currentLocale.flag}</span>
-          <span>{currentLocale.label}</span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="center"
-        className="w-36 bg-slate-800 border-slate-700"
+      <DropdownMenuTrigger
+        aria-label={tc("language")}
+        disabled={isPending}
+        className="flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
       >
-        {locales.map((l) => (
-          <DropdownMenuItem
-            key={l.code}
-            onClick={() => handleLocaleChange(l.code)}
-            className={`flex items-center gap-2 cursor-pointer focus:bg-slate-700 focus:text-white ${
-              locale === l.code ? "text-white font-medium" : "text-slate-400"
-            }`}
-          >
-            <span className="text-base">{l.flag}</span>
-            {l.label}
-          </DropdownMenuItem>
-        ))}
+        <Languages className="size-[18px]" aria-hidden="true" />
+        {current.label}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="w-40 rounded-xl p-1.5">
+        <DropdownMenuRadioGroup value={locale} onValueChange={changeLocale}>
+          {locales.map((l) => (
+            <DropdownMenuRadioItem
+              key={l.code}
+              value={l.code}
+              className="min-h-11 rounded-md"
+            >
+              {l.label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
