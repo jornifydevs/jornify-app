@@ -136,7 +136,9 @@ export default function TimeTracker({
         aria-label={t("todayLabel")}
         className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm sm:p-6"
       >
-        <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+        <StatusBadge tone={status.tone} pulse={status.tone === "live"}>
+          {status.label}
+        </StatusBadge>
 
         <div className="space-y-2">
           {isWorking ? (
