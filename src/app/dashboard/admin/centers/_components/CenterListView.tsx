@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Building2,
   Users,
   MapPin,
@@ -12,8 +11,9 @@ import {
   Plus,
   X,
   Loader2,
-  LogOut,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CenterWithWorkerCount } from "@/core/application/dtos/admin-centers.dto";
 import { useTranslations } from "next-intl";
@@ -112,60 +112,36 @@ export default function CenterListView({
   void companyId;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-3 flex-1">
-            <div className="p-2 bg-green-600 rounded-lg">
-              <Building2 className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {t("title")}
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {centers.length} centro{centers.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-          </div>
-          {canCreate && (
-            <button
-              onClick={() => {
-                setShowCreateForm((v) => !v);
-                setError(null);
-                setForm(defaultForm);
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              {showCreateForm ? (
-                <X className="w-4 h-4" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
-              {showCreateForm ? tc("cancel") : t("newCenter")}
-            </button>
-          )}
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{tc("signOut")}</span>
-            </button>
-          </form>
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-8">
+        <PageHeader
+          title={t("title")}
+          description={t("count", { count: centers.length })}
+          actions={
+            canCreate && (
+              <Button
+                size="sm"
+                variant={showCreateForm ? "outline" : "default"}
+                onClick={() => {
+                  setShowCreateForm((v) => !v);
+                  setError(null);
+                  setForm(defaultForm);
+                }}
+              >
+                {showCreateForm ? (
+                  <X className="w-4 h-4" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+                {showCreateForm ? tc("cancel") : t("newCenter")}
+              </Button>
+            )
+          }
+        />
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         {/* Create form */}
         {showCreateForm && (
           <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-green-500/30 p-6">
@@ -363,7 +339,7 @@ export default function CenterListView({
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

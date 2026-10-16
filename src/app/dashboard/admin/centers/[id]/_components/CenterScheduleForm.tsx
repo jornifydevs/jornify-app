@@ -2,21 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Clock,
   Coffee,
   Save,
-  Building2,
   CalendarDays,
   Plus,
   Trash2,
   Loader2,
   Pencil,
   AlertTriangle,
-  LogOut,
 } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -299,40 +296,17 @@ export default function CenterScheduleForm({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center gap-3">
-          <Link
-            href="/dashboard/admin/centers"
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-          </Link>
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <Building2 className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              {center.name}
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {t("pageSubtitle")}
-            </p>
-          </div>
-          <form action="/auth/signout" method="post" className="ml-auto">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{tc("signOut")}</span>
-            </button>
-          </form>
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-2xl px-6 pt-6 lg:pt-8">
+        <PageHeader
+          title={center.name}
+          description={t("pageSubtitle")}
+          backHref="/dashboard/admin/centers"
+          backLabel={tc("back")}
+        />
+      </div>
 
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <div className="max-w-2xl mx-auto px-6 py-8">
         <div className="space-y-6">
           {/* Basic Info Section */}
           <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
@@ -846,7 +820,7 @@ export default function CenterScheduleForm({
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }

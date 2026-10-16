@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { ArrowLeft, FileText, Eye, Download, Search, X } from "lucide-react";
+import { FileText, Eye, Download, Search, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,14 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import UserMenu from "../../_components/UserMenu";
-import type { Document, CenterFeature } from "@/core/domain/entities";
+import { PageHeader } from "@/components/PageHeader";
+import type { Document } from "@/core/domain/entities";
 import { useTranslations, useLocale } from "next-intl";
 
 interface PayrollViewProps {
   documents: Document[];
-  userEmail: string;
-  enabledFeatures: CenterFeature[];
 }
 
 function getYear(dateString: string | undefined): number | null {
@@ -29,11 +26,7 @@ function getYear(dateString: string | undefined): number | null {
   return new Date(dateString).getFullYear();
 }
 
-export default function PayrollView({
-  documents,
-  userEmail,
-  enabledFeatures,
-}: PayrollViewProps) {
+export default function PayrollView({ documents }: PayrollViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const t = useTranslations("dashboard.payroll");
@@ -101,37 +94,13 @@ export default function PayrollView({
   const hasActiveFilters = searchQuery !== "" || selectedYear !== "all";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-lg">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {t("title")}
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {userEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-          <UserMenu enabledFeatures={enabledFeatures} />
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-4xl px-6 pt-6 lg:pt-8">
+        <PageHeader title={t("title")} />
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 py-8">
         <Card className="bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
@@ -253,7 +222,7 @@ export default function PayrollView({
             )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  LogOut,
   Users,
   Clock,
   Building2,
@@ -13,11 +12,11 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/PageHeader";
 
 interface AdminDashboardProps {
   userName: string;
   userLastName: string;
-  companyId: string;
   totalWorkers: number;
   totalCenters: number;
   activeToday: number;
@@ -31,7 +30,6 @@ export default function AdminDashboard({
   activeToday,
 }: AdminDashboardProps) {
   const t = useTranslations("dashboard.admin");
-  const tc = useTranslations("common");
 
   const adminSections = [
     {
@@ -91,39 +89,20 @@ export default function AdminDashboard({
   ];
 
   return (
-    <div className="flex flex-1 flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-600 rounded-lg">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {t("title")}
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {userName} {userLastName}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 md:justify-end">
-            <form action="/auth/signout" method="post">
-              <button
-                type="submit"
-                className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">{tc("signOut")}</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-8">
+        <PageHeader
+          title={t("title")}
+          description={
+            <>
+              {userName} {userLastName}
+            </>
+          }
+        />
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8 flex-1">
+      <div className="max-w-7xl mx-auto px-6 py-8 flex-1">
         <div className="space-y-8">
           {/* Welcome Message */}
           <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/50 rounded-2xl p-6">
@@ -210,7 +189,7 @@ export default function AdminDashboard({
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

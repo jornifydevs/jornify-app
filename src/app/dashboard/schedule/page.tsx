@@ -40,12 +40,5 @@ export default async function SchedulePage() {
     redirect("/dashboard");
   }
 
-  return (
-    <WorkerScheduleView
-      workerId={worker.id}
-      centerId={worker.centerId}
-      userEmail={userData.email}
-      enabledFeatures={center.enabledFeatures}
-    />
-  );
+  return <WorkerScheduleView workerId={worker.id} centerId={worker.centerId} />;
 }

@@ -4,14 +4,12 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Users,
   Search,
   Eye,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  LogOut,
   Trash2,
   ArrowRightLeft,
   X,
@@ -22,6 +20,7 @@ import {
   Download,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { PageHeader } from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -526,44 +525,16 @@ export default function WorkerListView({
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 relative flex items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {t("title")}
-              </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {workers.length} trabajador{workers.length !== 1 ? "es" : ""}{" "}
-                registrado{workers.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-          </div>
-          <form action="/auth/signout" method="post" className="ml-auto">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">{tc("signOut")}</span>
-            </button>
-          </form>
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-7xl px-6 pt-6 lg:pt-8">
+        <PageHeader
+          title={t("title")}
+          description={t("registeredCount", { count: workers.length })}
+        />
+      </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         <InvitationCodePanel initialCodes={initialCodes} />
         <UnassignedWorkerPanel
           unassignedWorkers={unassignedWorkers}
@@ -798,7 +769,7 @@ export default function WorkerListView({
           Mostrando {filtered.length} de {workers.length} trabajador
           {workers.length !== 1 ? "es" : ""}
         </p>
-      </main>
+      </div>
 
       {/* Modal — Cambiar centro */}
       {bulkModal === "move" && (

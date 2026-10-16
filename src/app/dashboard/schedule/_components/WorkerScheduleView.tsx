@@ -1,16 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import {
-  ArrowLeft,
-  CalendarClock,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
-import UserMenu from "../../_components/UserMenu";
-import type { CenterFeature } from "@/core/domain/entities";
+import { PageHeader } from "@/components/PageHeader";
 import { useWorkerSchedule } from "../_hooks/useWorkerSchedule";
 import { useShiftSwap } from "../_hooks/useShiftSwap";
 import ShiftSwapPanel from "./ShiftSwapPanel";
@@ -18,8 +10,6 @@ import ShiftSwapPanel from "./ShiftSwapPanel";
 interface WorkerScheduleViewProps {
   workerId: string;
   centerId: string;
-  userEmail: string;
-  enabledFeatures: CenterFeature[];
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -37,8 +27,6 @@ function formatHour(time: string): string {
 export default function WorkerScheduleView({
   workerId,
   centerId,
-  userEmail,
-  enabledFeatures,
 }: WorkerScheduleViewProps) {
   const t = useTranslations("dashboard.schedule");
   const tc = useTranslations("common");
@@ -57,36 +45,12 @@ export default function WorkerScheduleView({
   const swapHook = useShiftSwap({ workerId, centerId });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-center w-10 h-10 bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-600 rounded-lg">
-                <CalendarClock className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {t("pageTitle")}
-                </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {userEmail}
-                </p>
-              </div>
-            </div>
-          </div>
-          <UserMenu enabledFeatures={enabledFeatures} />
-        </div>
-      </header>
+    <div>
+      <div className="mx-auto max-w-4xl px-6 pt-6 lg:pt-8">
+        <PageHeader title={t("pageTitle")} />
+      </div>
 
-      <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         {/* Week navigation */}
         <div className="flex items-center justify-between">
           <button
@@ -219,7 +183,7 @@ export default function WorkerScheduleView({
 
         {/* Swap panel */}
         <ShiftSwapPanel workerId={workerId} swapHook={swapHook} />
-      </main>
+      </div>
     </div>
   );
 }

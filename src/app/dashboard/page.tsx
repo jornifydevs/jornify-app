@@ -160,7 +160,6 @@ export default async function Dashboard() {
       <AdminDashboard
         userName={userData.name}
         userLastName={userData.lastName}
-        companyId={userData.companyId}
         totalWorkers={stats.totalWorkers}
         totalCenters={stats.totalCenters}
         activeToday={stats.activeToday}
